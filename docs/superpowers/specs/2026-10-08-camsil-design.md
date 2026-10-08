@@ -186,7 +186,7 @@ Bir nokta, `wetMap` değeri 0,3'ten büyükse ıslak sayılır.
 ## 9. Test
 
 1. **Birim testleri (XCTest):** Araç değiştirme durumu, silme kurallarının matematiği, damla fiziği, kuruma süresi ve "%95 temiz" eşiği. Bu mantık saf Swift fonksiyonları olarak test edilir.
-2. **Görüntü testi:** Sabit bir tohum ve sabit bir ekran görüntüsü ile `Renderer` bir kare çizer. Sonuç, kayıtlı bir referans görüntüyle küçük bir toleransla karşılaştırılır.
+2. **Görüntü testi:** Sabit bir test ekran görüntüsü ile `Renderer` bir kare çizer. Testler sonucun özelliklerini kontrol eder: temiz cam ekranı aynen gösterir, toz kontrastı düşürür, pencere opaklığı 0 ise çıktı şeffaftır, parlama ekranı aydınlatır.
 3. **Hata ayıklama görünümü:** Debug sürümünde `D` tuşu `dirtMask`, `wetMap` ve `dropNormals` dokularını ekranda gösterir.
 4. **Elle test listesi:**
    - Retina ekranda 120 Hz akıcılık (Instruments ile ölçülür).
