@@ -61,7 +61,8 @@ fragment float4 compositeFragment(FullscreenOut in [[stage_in]],
     if (u.state.z >= 0.0) {
         float band = u.state.z * 2.4 - 0.7;
         float x = (uv.x + uv.y) * 0.5;
-        color += exp(-pow(x - band, 2.0) / 0.003) * 0.7;
+        float dx = x - band;
+        color += exp(-dx * dx / 0.003) * 0.7;
     }
 
     float a = u.state.y;

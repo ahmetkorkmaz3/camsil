@@ -17,11 +17,11 @@ final class CompositorTests: XCTestCase {
         TestGPU.fillR16(textures.wet, 0)
     }
 
-    private func render(_ uniforms: CompositeUniforms) -> [SIMD4<UInt8>] {
+    private func render(_ uniforms: CompositeUniforms, droplets: [Droplet] = []) -> [SIMD4<UInt8>] {
         let target = TestGPU.makeBGRA(width: n, height: n, usage: [.renderTarget, .shaderRead])
         let dropRenderer = try! DropletRenderer(context: TestGPU.context)
         TestGPU.run { cb in
-            dropRenderer.encode([], into: textures.dropNormals, commandBuffer: cb)
+            dropRenderer.encode(droplets, into: textures.dropNormals, commandBuffer: cb)
             let blur = compositor.prepareBlur(screen: screen, commandBuffer: cb)!
             let rpd = MTLRenderPassDescriptor()
             rpd.colorAttachments[0].texture = target
@@ -76,5 +76,30 @@ final class CompositorTests: XCTestCase {
         let shiny = render(CompositeUniforms(dirtOpacity: 0, windowOpacity: 1, sparkle: 0.5, debugMode: 0))
         let sum = { (px: [SIMD4<UInt8>]) in px.reduce(0) { $0 + Int($1.y) } }
         XCTAssertGreaterThan(sum(shiny), sum(plain))
+    }
+
+    func testSparkleNeverDarkensGlass() {
+        let out = render(CompositeUniforms(dirtOpacity: 0, windowOpacity: 1, sparkle: 0.9, debugMode: 0))
+        let src = TestGPU.readBGRA(screen)
+        for i in out.indices {
+            XCTAssertGreaterThanOrEqual(Int(out[i].y), Int(src[i].y) - 1)
+        }
+    }
+
+    func testDropletChangesGlassOnlyWhereItIs() {
+        let u = CompositeUniforms(dirtOpacity: 1, windowOpacity: 1, sparkle: nil, debugMode: 0)
+        let plain = render(u)
+        let drop = render(u, droplets: [Droplet(position: SIMD2(32, 32), radius: 10, velocity: 0)])
+        var changed = false
+        for y in 24...40 {
+            for x in 24...40 {
+                let a = plain[y * n + x]
+                let b = drop[y * n + x]
+                let d = max(abs(Int(a.x) - Int(b.x)), abs(Int(a.y) - Int(b.y)), abs(Int(a.z) - Int(b.z)))
+                if d > 10 { changed = true }
+            }
+        }
+        XCTAssertTrue(changed)
+        XCTAssertEqual(plain[2 * n + 2], drop[2 * n + 2])
     }
 }
