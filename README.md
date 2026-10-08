@@ -1,5 +1,7 @@
 # Camsil
 
+Camsil needs a Mac with Apple Silicon (M1 or later) and macOS 14 or later.
+
 Your screen is a dirty window. Spray it, wipe it, make it shine.
 
 ## Use
@@ -17,6 +19,10 @@ Your screen is a dirty window. Spray it, wipe it, make it shine.
 
 Put your team ID in `Config/Local.xcconfig` (`DEVELOPMENT_TEAM = ...`). A stable signature keeps the Screen Recording permission between builds.
 
+- A free Apple ID "Personal Team" works for `DEVELOPMENT_TEAM`. Open Xcode > Settings > Accounts, add the Apple ID, then copy the team ID into `Config/Local.xcconfig`.
+- If macOS keeps asking for Screen Recording after a rebuild, reset the entry with `tccutil reset ScreenCapture com.ahmetkorkmaz.Camsil`, then open Camsil again.
+- The Metal Toolchain is needed once per Mac: `xcodebuild -downloadComponent MetalToolchain`.
+
 ## Test
 
     xcodebuild test -project Camsil.xcodeproj -scheme Camsil -destination 'platform=macOS'
@@ -24,6 +30,12 @@ Put your team ID in `Config/Local.xcconfig` (`DEVELOPMENT_TEAM = ...`). A stable
 GPU tests need an Apple Silicon Mac.
 
 ## Release
+
+Prerequisites:
+
+- XcodeGen (`brew install xcodegen`).
+- A Developer ID Application certificate in your keychain.
+- A notary profile saved with `xcrun notarytool store-credentials` (for example `camsil-notary`).
 
     NOTARY_PROFILE=camsil-notary scripts/release.sh 1.0.0
 

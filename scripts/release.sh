@@ -1,6 +1,7 @@
 #!/bin/bash
 # Usage: NOTARY_PROFILE=camsil-notary scripts/release.sh 1.0.0
 set -euo pipefail
+cd "$(dirname "$0")/.."
 
 VERSION="${1:?usage: scripts/release.sh <version>}"
 : "${NOTARY_PROFILE:?Set NOTARY_PROFILE to a profile saved with xcrun notarytool store-credentials}"
