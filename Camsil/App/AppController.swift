@@ -32,8 +32,10 @@ final class AppController: NSObject, NSApplicationDelegate {
         let capture = ScreenCapture(device: context.device)
         let scene: CleaningScene
         do {
+            let hud = HUD(in: view, startTime: CACurrentMediaTime())
             scene = try CleaningScene(
-                context: context, capture: capture,
+                context: context, capture: capture, sound: SoundPlayer(bundle: .main), hud: hud,
+                bottle: try BottleSprite.load(device: context.device),
                 viewSizePoints: SIMD2(Float(screen.frame.width), Float(screen.frame.height)),
                 backingScale: Float(screen.backingScaleFactor), pixelFormat: view.colorPixelFormat)
         } catch {
