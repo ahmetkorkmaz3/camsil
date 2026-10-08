@@ -71,33 +71,82 @@ public final class DropletSystem {
         droplets.append(droplet)
     }
 
+    // Reused across merge() calls: per-cell linked lists (head, tail, next-in-cell).
+    private static let cell: Float = 16
+    private lazy var gridWidth = Int((bounds.x / Self.cell).rounded(.up)) + 1
+    private lazy var gridHeight = Int((bounds.y / Self.cell).rounded(.up)) + 1
+    private lazy var cellHead = [Int32](repeating: -1, count: gridWidth * gridHeight)
+    private lazy var cellTail = [Int32](repeating: -1, count: gridWidth * gridHeight)
+    private var nextInCell: [Int32] = []
+
     /// Joins overlapping droplets. Area is kept: r = sqrt(r1² + r2²).
     func merge() {
-        let cell: Float = 16
-        var grid: [SIMD2<Int32>: [Int]] = [:]
-        var alive = [Bool](repeating: true, count: droplets.count)
-        for i in droplets.indices {
-            let key = SIMD2<Int32>(Int32((droplets[i].position.x / cell).rounded(.down)),
-                                   Int32((droplets[i].position.y / cell).rounded(.down)))
-            var merged = false
-            search: for dx in Int32(-1)...1 {
-                for dy in Int32(-1)...1 {
-                    for j in grid[key &+ SIMD2(dx, dy)] ?? [] where alive[j] {
-                        let a = droplets[i], b = droplets[j]
-                        guard simd_distance(a.position, b.position) < (a.radius + b.radius) * 0.8 else { continue }
-                        let area = a.radius * a.radius + b.radius * b.radius
-                        let wa = a.radius * a.radius / area
-                        droplets[j].position = a.position * wa + b.position * (1 - wa)
-                        droplets[j].radius = sqrt(area)
-                        droplets[j].velocity = max(a.velocity, b.velocity)
-                        alive[i] = false
-                        merged = true
-                        break search
+        let count = droplets.count
+        if nextInCell.count < count {
+            nextInCell = [Int32](repeating: -1, count: count)
+        }
+        let width = gridWidth, height = gridHeight
+        var alive = [Bool](repeating: true, count: count)
+        var used: [Int] = []
+        used.reserveCapacity(count)
+        var anyMerged = false
+        // Raw buffers: this runs every frame, and Debug-build array access is slow.
+        droplets.withUnsafeMutableBufferPointer { items in
+        cellHead.withUnsafeMutableBufferPointer { head in
+        cellTail.withUnsafeMutableBufferPointer { tail in
+        nextInCell.withUnsafeMutableBufferPointer { next in
+        alive.withUnsafeMutableBufferPointer { alive in
+            for i in 0..<count {
+                let a = items[i]
+                let ax = a.position.x, ay = a.position.y
+                let cx = min(max(Int((ax / Self.cell).rounded(.down)), 0), width - 1)
+                let cy = min(max(Int((ay / Self.cell).rounded(.down)), 0), height - 1)
+                var merged = false
+                var ny = max(cy - 1, 0)
+                let nyEnd = min(cy + 1, height - 1), nxEnd = min(cx + 1, width - 1)
+                search: while ny <= nyEnd {
+                    var nx = max(cx - 1, 0)
+                    while nx <= nxEnd {
+                        var j = head[ny * width + nx]
+                        while j >= 0 {
+                            let ju = Int(j)
+                            j = next[ju]
+                            guard alive[ju] else { continue }
+                            let bx = items[ju].position.x - ax, by = items[ju].position.y - ay
+                            let reach = (a.radius + items[ju].radius) * 0.8
+                            guard bx * bx + by * by < reach * reach else { continue }
+                            let b = items[ju]
+                            let area = a.radius * a.radius + b.radius * b.radius
+                            let wa = a.radius * a.radius / area
+                            items[ju].position = a.position * wa + b.position * (1 - wa)
+                            items[ju].radius = sqrt(area)
+                            items[ju].velocity = max(a.velocity, b.velocity)
+                            alive[i] = false
+                            merged = true
+                            anyMerged = true
+                            break search
+                        }
+                        nx += 1
                     }
+                    ny += 1
+                }
+                if !merged {
+                    let c = cy * width + cx
+                    next[i] = -1
+                    if tail[c] >= 0 { next[Int(tail[c])] = Int32(i) } else { head[c] = Int32(i) }
+                    tail[c] = Int32(i)
+                    used.append(c)
                 }
             }
-            if !merged { grid[key, default: []].append(i) }
+            for c in used { head[c] = -1; tail[c] = -1 }
+        }}}}}
+        if anyMerged {
+            var write = 0
+            for read in 0..<count where alive[read] {
+                droplets[write] = droplets[read]
+                write += 1
+            }
+            droplets.removeLast(count - write)
         }
-        droplets = droplets.indices.filter { alive[$0] }.map { droplets[$0] }
     }
 }

@@ -75,4 +75,19 @@ final class DropletSystemTests: XCTestCase {
         system.add(Droplet(position: SIMD2(-5, 10), radius: 2, velocity: 0))
         XCTAssertTrue(system.droplets.isEmpty)
     }
+
+    func testMergeOf4000DropletsIsFast() {
+        let system = DropletSystem(bounds: SIMD2(2560, 1600))
+        for ix in 0..<80 {
+            for iy in 0..<50 {
+                system.add(Droplet(position: SIMD2(Float(ix) * 30 + 5, Float(iy) * 30 + 5), radius: 2, velocity: 0))
+            }
+        }
+        XCTAssertEqual(system.droplets.count, 4000)
+        let start = Date()
+        for _ in 0..<10 { system.merge() }
+        let average = Date().timeIntervalSince(start) / 10
+        XCTAssertEqual(system.droplets.count, 4000)
+        XCTAssertLessThan(average, 0.002)
+    }
 }
