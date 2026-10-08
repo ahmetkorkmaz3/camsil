@@ -5,6 +5,7 @@ import ScreenCaptureKit
 
 enum CaptureError: Error {
     case displayNotFound
+    case ownAppNotFound
 }
 
 /// Streams the main display, without our own windows, into Metal textures.
@@ -36,9 +37,7 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         guard let display = content.displays.first(where: { $0.displayID == displayID }) else {
             throw CaptureError.displayNotFound
         }
-        let ownPID = ProcessInfo.processInfo.processIdentifier
-        let own = content.applications.filter { $0.processID == ownPID }
-        let filter = SCContentFilter(display: display, excludingApplications: own, exceptingWindows: [])
+        let filter = try Self.excludingOwnApp(display: display, content: content)
         let config = SCStreamConfiguration()
         let scale = CGFloat(filter.pointPixelScale)
         config.width = Int(CGFloat(display.width) * scale)
@@ -52,6 +51,21 @@ final class ScreenCapture: NSObject, SCStreamOutput, SCStreamDelegate {
         try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: queue)
         try await stream.startCapture()
         self.stream = stream
+    }
+
+    /// A filter for the display without our overlay. Without it the overlay captures itself.
+    private static func excludingOwnApp(display: SCDisplay, content: SCShareableContent) throws -> SCContentFilter {
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        var own = content.applications.filter { $0.processID == ownPID }
+        if own.isEmpty, let bundleID = Bundle.main.bundleIdentifier {
+            own = content.applications.filter { $0.bundleIdentifier == bundleID }
+        }
+        if !own.isEmpty {
+            return SCContentFilter(display: display, excludingApplications: own, exceptingWindows: [])
+        }
+        let ownWindows = content.windows.filter { $0.owningApplication?.processID == ownPID }
+        guard !ownWindows.isEmpty else { throw CaptureError.ownAppNotFound }
+        return SCContentFilter(display: display, excludingWindows: ownWindows)
     }
 
     func stop() {

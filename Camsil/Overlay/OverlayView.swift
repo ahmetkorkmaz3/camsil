@@ -46,7 +46,8 @@ final class OverlayView: MTKView {
             quitHandler?()
             return
         }
-        guard let key = event.charactersIgnoringModifiers?.lowercased() else { return }
+        // A held tool key (Space, 1, 2) must not switch tools again and again.
+        guard !event.isARepeat, let key = event.charactersIgnoringModifiers?.lowercased() else { return }
         #if DEBUG
         if key == "d" {
             debugHandler?()

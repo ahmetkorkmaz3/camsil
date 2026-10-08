@@ -4,9 +4,16 @@ import MetalKit
 
 final class AppController: NSObject, NSApplicationDelegate {
     private var window: OverlayWindow?
+    private var view: OverlayView?
     private var scene: CleaningScene?
     private var capture: ScreenCapture?
     private var screenFrame: NSRect = .zero
+    private var didGetFirstFrame = false
+    private var isClosing = false
+    private var cursorHidden = false
+
+    /// Seconds to wait for the first screen frame after the capture starts.
+    private let firstFrameTimeout: TimeInterval = 3
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let context: MetalContext
@@ -32,7 +39,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         let capture = ScreenCapture(device: context.device)
         let scene: CleaningScene
         do {
-            let hud = HUD(in: view, startTime: CACurrentMediaTime())
+            let hud = HUD(in: view)
             scene = try CleaningScene(
                 context: context, capture: capture, sound: SoundPlayer(bundle: .main), hud: hud,
                 bottle: try BottleSprite.load(device: context.device),
@@ -48,20 +55,21 @@ final class AppController: NSObject, NSApplicationDelegate {
         view.debugHandler = { [weak scene] in scene?.toggleDebug() }
         view.quitHandler = { [weak self] in self?.quit() }
         scene.onQuit = { [weak self] in self?.quit() }
+        scene.onFirstFrame = { [weak self] in self?.firstFrameArrived() }
         capture.onStreamStopped = { [weak self] in self?.startCapture(displayID: displayID) }
         self.window = window
+        self.view = view
         self.scene = scene
         self.capture = capture
 
-        startCapture(displayID: displayID)
         NotificationCenter.default.addObserver(self, selector: #selector(screensChanged),
                                                name: NSApplication.didChangeScreenParametersNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(appResignedActive),
-                                               name: NSApplication.didResignActiveNotification, object: nil)
+        // Until the first frame: clicks pass through and the cursor stays visible,
+        // so a system consent prompt can still be answered.
         NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
-        window.makeFirstResponder(view)
-        NSCursor.hide()
+        window.ignoresMouseEvents = true
+        window.orderFrontRegardless()
+        startCapture(displayID: displayID)
     }
 
     private func startCapture(displayID: CGDirectDisplayID) {
@@ -70,30 +78,90 @@ final class AppController: NSObject, NSApplicationDelegate {
                 try await self.capture?.start(displayID: displayID)
             } catch {
                 self.fail("Ekran görüntüsü alınamadı: \(error.localizedDescription)")
+                return
+            }
+            guard !self.didGetFirstFrame else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + self.firstFrameTimeout) { [weak self] in
+                guard let self, !self.didGetFirstFrame else { return }
+                self.fail("Ekran görüntüsü alınamadı.")
             }
         }
+    }
+
+    /// The overlay now shows the screen. Take the mouse and the keyboard.
+    private func firstFrameArrived() {
+        guard !didGetFirstFrame, !isClosing else { return }
+        didGetFirstFrame = true
+        sendMousePosition()
+        NotificationCenter.default.addObserver(self, selector: #selector(appResignedActive),
+                                               name: NSApplication.didResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appBecameActive),
+                                               name: NSApplication.didBecomeActiveNotification, object: nil)
+        if NSApp.isActive {
+            takeInput()
+        } else {
+            // didBecomeActive calls takeInput.
+            NSApp.activate()
+        }
+    }
+
+    /// Puts the tool under the real mouse, so it does not start at the top-left corner.
+    private func sendMousePosition() {
+        guard let window, let view else { return }
+        let inWindow = window.convertPoint(fromScreen: NSEvent.mouseLocation)
+        let p = view.convert(inWindow, from: nil)
+        scene?.handle(.moved(SIMD2(Float(p.x), Float(view.bounds.height - p.y))))
+    }
+
+    private func takeInput() {
+        guard didGetFirstFrame, !isClosing, let window, let view else { return }
+        window.ignoresMouseEvents = false
+        window.makeKeyAndOrderFront(nil)
+        window.makeFirstResponder(view)
+        setCursorHidden(true)
+    }
+
+    /// Keeps NSCursor.hide and unhide balanced. They are counted calls.
+    private func setCursorHidden(_ hidden: Bool) {
+        guard hidden != cursorHidden else { return }
+        cursorHidden = hidden
+        if hidden { NSCursor.hide() } else { NSCursor.unhide() }
     }
 
     @objc private func screensChanged() {
         if NSScreen.screens.first?.frame != screenFrame { quit() }
     }
 
-    /// Keeps keyboard focus, so Esc and Cmd+Q always work.
+    /// While another app is active, the overlay still shows the dirt but lets clicks through. Cmd+Tab back to Camsil.
     @objc private func appResignedActive() {
-        NSApp.activate()
-        window?.makeKeyAndOrderFront(nil)
+        window?.ignoresMouseEvents = true
+        setCursorHidden(false)
+    }
+
+    @objc private func appBecameActive() {
+        takeInput()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        setCursorHidden(false)
     }
 
     func quit() {
-        NSCursor.unhide()
+        guard !isClosing else { return }
+        isClosing = true
+        NotificationCenter.default.removeObserver(self)
+        setCursorHidden(false)
         capture?.stop()
         NSApp.terminate(nil)
     }
 
     private func fail(_ message: String) {
+        guard !isClosing else { return }
+        isClosing = true
         NotificationCenter.default.removeObserver(self)
+        setCursorHidden(false)
+        capture?.stop()
         window?.orderOut(nil)
-        NSCursor.unhide()
         let alert = NSAlert()
         alert.messageText = "Camsil açılamadı"
         alert.informativeText = message

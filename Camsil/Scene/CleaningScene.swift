@@ -5,6 +5,8 @@ import simd
 /// One frame: input → simulation → droplets → composite → tool sprite → HUD.
 final class CleaningScene: NSObject, MTKViewDelegate {
     var onQuit: (() -> Void)?
+    /// Called once, on the main thread, when the first screen frame is drawn.
+    var onFirstFrame: (() -> Void)?
 
     private let context: MetalContext
     private let capture: ScreenCapture
@@ -20,7 +22,8 @@ final class CleaningScene: NSObject, MTKViewDelegate {
     private let progressCounter: ProgressCounter
     private let tools = ToolController()
     private let droplets: DropletSystem
-    private let session: SessionController
+    /// Nil until the first screen frame. The session clock starts there.
+    private var session: SessionController?
     private let cleanProgress: CleanProgress
     private var rng: SeededRandom
     private var pending: [ToolAction] = []
@@ -64,16 +67,21 @@ final class CleaningScene: NSObject, MTKViewDelegate {
         compositor = try Compositor(context: context, pixelFormat: pixelFormat)
         sprites = try SpriteRenderer(context: context, pixelFormat: pixelFormat)
         droplets = DropletSystem(bounds: SIMD2(Float(space.simSize.x), Float(space.simSize.y)))
-        cleanProgress = CleanProgress(initialDirt: progressCounter.measureNow(dirt: textures.dirt))
+        guard let initialDirt = progressCounter.measureNow(dirt: textures.dirt) else {
+            throw MetalError.bufferCreation
+        }
+        cleanProgress = CleanProgress(initialDirt: initialDirt)
 
         let now = CACurrentMediaTime()
-        session = SessionController(startTime: now)
         lastFrameTime = now
         lastInputTime = now
         super.init()
     }
 
-    private var isActive: Bool { session.phase == .intro || session.phase == .cleaning }
+    private var isActive: Bool {
+        guard let phase = session?.phase else { return false }
+        return phase == .intro || phase == .cleaning
+    }
 
     func handle(_ input: ToolInput) {
         let now = CACurrentMediaTime()
@@ -90,6 +98,10 @@ final class CleaningScene: NSObject, MTKViewDelegate {
 
     func draw(in view: MTKView) {
         let now = CACurrentMediaTime()
+        // Before the first frame, present nothing and keep the clock stopped.
+        guard capture.latestTexture != nil else { return }
+        if session == nil { beginSession(now: now) }
+        guard let session else { return }
         let dt = Float(min(now - lastFrameTime, 0.05))
         lastFrameTime = now
         guard let cb = context.queue.makeCommandBuffer() else { return }
@@ -134,6 +146,8 @@ final class CleaningScene: NSObject, MTKViewDelegate {
             lastProgressTime = now
             let progress = cleanProgress
             progressCounter.encode(dirt: textures.dirt, commandBuffer: cb) { [weak self] mean in
+                // A failed readback keeps the old fraction.
+                guard let mean else { return }
                 DispatchQueue.main.async { self?.cleanFraction = progress.fraction(currentDirt: mean) }
             }
         }
@@ -167,6 +181,15 @@ final class CleaningScene: NSObject, MTKViewDelegate {
             didQuit = true
             onQuit?()
         }
+    }
+
+    /// Starts the fade-in, idle and hint timers at the first screen frame.
+    private func beginSession(now: Double) {
+        session = SessionController(startTime: now)
+        lastFrameTime = now
+        lastInputTime = now
+        hud.start(at: now)
+        onFirstFrame?()
     }
 
     private func toolSprite(now: Double) -> Sprite {

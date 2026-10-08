@@ -6,7 +6,9 @@ final class ProgressCounterTests: XCTestCase {
         let textures = try SimulationTextures(device: TestGPU.context.device, size: SIMD2(64, 32))
         TestGPU.fillRGBA16(textures.dirt, SIMD4(0.2, 0.6, 0.1, 1))
         let counter = try ProgressCounter(context: TestGPU.context)
-        XCTAssertEqual(counter.measureNow(dirt: textures.dirt), 0.6, accuracy: 0.002)
+        let mean = counter.measureNow(dirt: textures.dirt)
+        XCTAssertNotNil(mean)
+        XCTAssertEqual(try XCTUnwrap(mean), 0.6, accuracy: 0.002)
     }
 
     func testAsyncCompletion() throws {
@@ -14,12 +16,12 @@ final class ProgressCounterTests: XCTestCase {
         TestGPU.fillRGBA16(textures.dirt, SIMD4(0.25, 0, 0, 1))
         let counter = try ProgressCounter(context: TestGPU.context)
         let done = expectation(description: "measured")
-        var result: Float = -1
+        var result: Float?
         TestGPU.run { cb in
             counter.encode(dirt: textures.dirt, commandBuffer: cb) { result = $0; done.fulfill() }
         }
         wait(for: [done], timeout: 2)
-        XCTAssertEqual(result, 0.25, accuracy: 0.002)
+        XCTAssertEqual(try XCTUnwrap(result), 0.25, accuracy: 0.002)
     }
 
     func testWetStartsDry() throws {

@@ -9,15 +9,16 @@ final class PassthroughLabel: NSTextField {
 final class HUD {
     private let percentLabel = HUD.makeLabel(size: 15)
     private let hintLabel = HUD.makeLabel(size: 14)
-    private let startTime: Double
+    private var startTime: Double?
     private var lastPercent = -1
 
-    init(in view: NSView, startTime: Double) {
-        self.startTime = startTime
+    /// The labels stay hidden until `start(at:)`.
+    init(in view: NSView) {
         hintLabel.stringValue = "  Sağ tık: araç değiştir · Esc: çık  "
         percentLabel.stringValue = "  %0 temiz  "
         for label in [percentLabel, hintLabel] {
             label.translatesAutoresizingMaskIntoConstraints = false
+            label.isHidden = true
             view.addSubview(label)
         }
         NSLayoutConstraint.activate([
@@ -28,7 +29,13 @@ final class HUD {
         ])
     }
 
+    /// Starts the hint timer. Call it at the first screen frame.
+    func start(at time: Double) {
+        startTime = time
+    }
+
     func update(fraction: Float, time: Double, visible: Bool) {
+        guard let startTime else { return }
         let percent = Int(fraction * 100)
         if percent != lastPercent {
             lastPercent = percent

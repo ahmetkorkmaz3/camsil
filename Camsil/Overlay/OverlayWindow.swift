@@ -8,7 +8,8 @@ final class OverlayWindow: NSWindow {
         isOpaque = false
         backgroundColor = .clear
         hasShadow = false
-        ignoresMouseEvents = false
+        // Clicks pass through until the first screen frame is drawn.
+        ignoresMouseEvents = true
         acceptsMouseMovedEvents = true
         isReleasedWhenClosed = false
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
