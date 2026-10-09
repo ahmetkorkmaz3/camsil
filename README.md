@@ -29,14 +29,22 @@ Put your team ID in `Config/Local.xcconfig` (`DEVELOPMENT_TEAM = ...`). A stable
 
 GPU tests need an Apple Silicon Mac.
 
+## Install
+
+    curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+
+`CAMSIL_VERSION=1.0.0` installs that version. The app is not notarized. `install.sh` downloads with curl, so macOS does not block it.
+
 ## Release
 
-Prerequisites:
+1. Build the app and the zip file:
 
-- XcodeGen (`brew install xcodegen`).
-- A Developer ID Application certificate in your keychain.
-- A notary profile saved with `xcrun notarytool store-credentials` (for example `camsil-notary`).
+        VERSION=1.0.0 scripts/bundle.sh
 
-    NOTARY_PROFILE=camsil-notary scripts/release.sh 1.0.0
+2. Publish `build/Camsil-1.0.0.zip` and `build/Camsil-1.0.0.zip.sha256` as release `v1.0.0`:
+
+        gh release create v1.0.0 build/Camsil-1.0.0.zip build/Camsil-1.0.0.zip.sha256
+
+Without `CODESIGN_IDENTITY`, the app gets an ad-hoc signature. Then macOS asks for Screen Recording again after each update. A self-signed certificate in the keychain keeps the permission: `CODESIGN_IDENTITY="Camsil Self-Signed" scripts/bundle.sh`.
 
 Sound credits are in `CREDITS.md`.
