@@ -1,13 +1,13 @@
 #!/bin/sh
 # Installs or updates Camsil from GitHub Releases.
-#   curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/camsil/main/install.sh | sh
 # CAMSIL_VERSION=1.0.0 installs that version.
 # CAMSIL_DOWNLOAD_BASE and CAMSIL_INSTALL_DIR are for tests only.
 # All code is in main(), so a download that stops partway runs nothing.
 set -eu
 
 main() {
-    REPO="ahmetkorkmaz3/Camsil"
+    REPO="ahmetkorkmaz3/camsil"
     APP_NAME="Camsil"
     BUNDLE_ID="com.ahmetkorkmaz.Camsil"
     DEST_DIR="${CAMSIL_INSTALL_DIR:-/Applications}"

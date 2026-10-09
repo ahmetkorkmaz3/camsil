@@ -10,7 +10,7 @@
 
 ## Bir kez: GitHub
 
-1. Repo `ahmetkorkmaz3/Camsil` adıyla GitHub üzerinde olmalı. Varsayılan dal `main` olmalı. `install.sh` ve `README.md` bu adları kullanır.
+1. Repo `ahmetkorkmaz3/camsil` adıyla GitHub üzerinde olmalı. Varsayılan dal `main` olmalı. `install.sh` ve `README.md` bu adları kullanır.
 2. GitHub → Settings → Pages → Source alanında **GitHub Actions** seçin.
 
 ## Her sürüm
@@ -28,7 +28,7 @@
 5. Kurulum komutunu deneyin:
 
    ```sh
-   curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+   curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/camsil/main/install.sh | sh
    ```
 
 6. `docs/manual-test.md` bölüm 5 adımlarını uygulayın.

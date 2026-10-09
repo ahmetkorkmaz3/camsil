@@ -3,14 +3,14 @@
 <h1 align="center">Camsil</h1>
 
 <p align="center">
-  <a href="https://github.com/ahmetkorkmaz3/Camsil/releases/latest"><img src="https://img.shields.io/github/v/release/ahmetkorkmaz3/Camsil" alt="Latest release"></a>
-  <a href="https://github.com/ahmetkorkmaz3/Camsil/actions/workflows/ci.yml"><img src="https://github.com/ahmetkorkmaz3/Camsil/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/ahmetkorkmaz3/camsil/releases/latest"><img src="https://img.shields.io/github/v/release/ahmetkorkmaz3/camsil" alt="Latest release"></a>
+  <a href="https://github.com/ahmetkorkmaz3/camsil/actions/workflows/ci.yml"><img src="https://github.com/ahmetkorkmaz3/camsil/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-blue" alt="macOS 14 or later">
   <img src="https://img.shields.io/badge/Apple%20Silicon-only-lightgrey" alt="Apple Silicon only">
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/ahmetkorkmaz3/Camsil" alt="MIT license"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/ahmetkorkmaz3/camsil" alt="MIT license"></a>
 </p>
 
-<p align="center"><a href="https://ahmetkorkmaz3.github.io/Camsil/">Website</a> · <a href="#install">Install</a> · <a href="#use">Use</a> · <a href="CONTRIBUTING.md">Contributing</a></p>
+<p align="center"><a href="https://ahmetkorkmaz3.github.io/camsil/">Website</a> · <a href="#install">Install</a> · <a href="#use">Use</a> · <a href="CONTRIBUTING.md">Contributing</a></p>
 
 Your screen is a dirty window. Spray it, wipe it, make it shine.
 
@@ -21,18 +21,18 @@ Camsil shows your main screen as a dusty glass pane. Spray water with the bottle
 Run this command in Terminal:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/camsil/main/install.sh | sh
 ```
 
 The command downloads the latest release, checks the SHA-256 value, and installs the app in `/Applications`. Requirements: a Mac with Apple Silicon (M1 or later) and macOS 14 or later.
 
 **Update:** Run the same command again.
 
-**A specific version:** `curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | CAMSIL_VERSION=1.0.0 sh`
+**A specific version:** `curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/camsil/main/install.sh | CAMSIL_VERSION=1.0.0 sh`
 
 **Manual install:**
 
-1. Download the `Camsil-X.Y.Z.zip` file from the [Releases](https://github.com/ahmetkorkmaz3/Camsil/releases) page.
+1. Download the `Camsil-X.Y.Z.zip` file from the [Releases](https://github.com/ahmetkorkmaz3/camsil/releases) page.
 2. Open the zip file. Move `Camsil.app` into `/Applications`.
 3. Open the app. macOS shows the "Apple could not verify" warning. Click **Done**.
 4. Open System Settings → Privacy & Security. At the bottom of the page, click **Open Anyway**.

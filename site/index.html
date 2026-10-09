@@ -8,8 +8,8 @@
   <meta property="og:title" content="Camsil">
   <meta property="og:description" content="A macOS toy that turns your screen into a dirty window. Spray it and wipe it until it shines.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://ahmetkorkmaz3.github.io/Camsil/">
-  <meta property="og:image" content="https://ahmetkorkmaz3.github.io/Camsil/og-image.png">
+  <meta property="og:url" content="https://ahmetkorkmaz3.github.io/camsil/">
+  <meta property="og:image" content="https://ahmetkorkmaz3.github.io/camsil/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Camsil: spray and wipe your screen until it shines.">
@@ -209,7 +209,7 @@
       <a class="hide-sm" href="#play" data-i18n="nav.play">How to play</a>
       <a class="hide-sm" href="#privacy" data-i18n="nav.privacy">Privacy</a>
       <a href="#install" data-i18n="nav.install">Install</a>
-      <a href="https://github.com/ahmetkorkmaz3/Camsil">GitHub</a>
+      <a href="https://github.com/ahmetkorkmaz3/camsil">GitHub</a>
       <button type="button" class="lang-toggle" id="lang-toggle" hidden lang="tr" aria-label="Türkçe göster" aria-pressed="false">TR</button>
     </div>
   </div>
@@ -223,7 +223,7 @@
       <p class="lead" data-i18n="hero.lead">Camsil is a small toy for the Mac. It puts dust, water spots, and fingerprints on your screen. Spray the glass with the bottle. Wipe it with the cloth until it shines.</p>
 
       <div class="install">
-        <pre aria-label="Install command" data-i18n-attr="aria-label:hero.cmdLabel"><span class="prompt">$ </span><span id="cmd">curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh</span></pre>
+        <pre aria-label="Install command" data-i18n-attr="aria-label:hero.cmdLabel"><span class="prompt">$ </span><span id="cmd">curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/camsil/main/install.sh | sh</span></pre>
         <button class="copy" type="button" data-copy="cmd">Copy</button>
       </div>
       <div class="badges">
@@ -232,11 +232,11 @@
         <span data-i18n="hero.badge.license">Free, MIT License</span>
       </div>
       <div class="actions">
-        <a class="btn" href="https://github.com/ahmetkorkmaz3/Camsil/releases/latest">
+        <a class="btn" href="https://github.com/ahmetkorkmaz3/camsil/releases/latest">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
           <span data-i18n="hero.download">Download the latest version</span>
         </a>
-        <a class="btn" href="https://github.com/ahmetkorkmaz3/Camsil">
+        <a class="btn" href="https://github.com/ahmetkorkmaz3/camsil">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
           <span data-i18n="hero.source">Source code</span>
         </a>
@@ -463,15 +463,15 @@
         <span data-i18n="install.req.perm">Screen Recording permission</span>
       </div>
       <pre class="code"><span class="c" data-i18n="install.comment1"># Install and update</span>
-curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/camsil/main/install.sh | sh
 
 <span class="c" data-i18n="install.comment2"># A specific version</span>
-curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | CAMSIL_VERSION=1.0.0 sh</pre>
+curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/camsil/main/install.sh | CAMSIL_VERSION=1.0.0 sh</pre>
 
       <details>
         <summary data-i18n="install.manual.title">Manual install</summary>
         <ol>
-          <li data-i18n="install.manual.1">Download <code>Camsil-X.Y.Z.zip</code> from the <a href="https://github.com/ahmetkorkmaz3/Camsil/releases/latest">Releases</a> page.</li>
+          <li data-i18n="install.manual.1">Download <code>Camsil-X.Y.Z.zip</code> from the <a href="https://github.com/ahmetkorkmaz3/camsil/releases/latest">Releases</a> page.</li>
           <li data-i18n="install.manual.2">Open the zip file. Move <code>Camsil.app</code> into <code>/Applications</code>.</li>
           <li data-i18n="install.manual.3">Open the app. macOS shows the "Apple could not verify" warning. Click <b>Done</b>.</li>
           <li data-i18n="install.manual.4">Open System Settings → Privacy &amp; Security. Click <b>Open Anyway</b>.</li>
@@ -494,8 +494,8 @@ tccutil reset ScreenCapture com.ahmetkorkmaz.Camsil</pre>
   <div class="wrap">
     <span data-i18n="footer.license">Camsil · MIT License</span>
     <nav aria-label="Footer menu" data-i18n-attr="aria-label:footer.label">
-      <a href="https://github.com/ahmetkorkmaz3/Camsil">GitHub</a>
-      <a href="https://github.com/ahmetkorkmaz3/Camsil/releases" data-i18n="footer.releases">Releases</a>
+      <a href="https://github.com/ahmetkorkmaz3/camsil">GitHub</a>
+      <a href="https://github.com/ahmetkorkmaz3/camsil/releases" data-i18n="footer.releases">Releases</a>
     </nav>
   </div>
 </footer>
@@ -578,7 +578,7 @@ tccutil reset ScreenCapture com.ahmetkorkmaz.Camsil</pre>
     "install.comment1": "# Kurulum ve güncelleme",
     "install.comment2": "# Belirli bir sürüm",
     "install.manual.title": "Elle kurulum",
-    "install.manual.1": "<a href=\"https://github.com/ahmetkorkmaz3/Camsil/releases/latest\">Releases</a> sayfasından <code>Camsil-X.Y.Z.zip</code> dosyasını indirin.",
+    "install.manual.1": "<a href=\"https://github.com/ahmetkorkmaz3/camsil/releases/latest\">Releases</a> sayfasından <code>Camsil-X.Y.Z.zip</code> dosyasını indirin.",
     "install.manual.2": "Zip dosyasını açın. <code>Camsil.app</code> dosyasını <code>/Applications</code> içine taşıyın.",
     "install.manual.3": "Uygulamayı açın. macOS \"Apple doğrulayamadı\" uyarısını gösterir. <b>Bitti</b> düğmesine basın.",
     "install.manual.4": "Sistem Ayarları → Gizlilik ve Güvenlik sayfasını açın. <b>Yine de Aç</b> düğmesine basın.",

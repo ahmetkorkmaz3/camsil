@@ -4,7 +4,7 @@ Thank you for your contribution to Camsil. This file describes the development s
 
 ## Report a bug or make a suggestion
 
-1. First, search for the same topic on the [Issues](https://github.com/ahmetkorkmaz3/Camsil/issues) page.
+1. First, search for the same topic on the [Issues](https://github.com/ahmetkorkmaz3/camsil/issues) page.
 2. Open a new issue. Write this information:
    - The macOS version and the Mac model (for example M1, M3 Pro).
    - The Camsil version: `defaults read /Applications/Camsil.app/Contents/Info.plist CFBundleShortVersionString`

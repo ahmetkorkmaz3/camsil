@@ -47,7 +47,7 @@ Esc tuşu her zaman çıkış yapar. Bir adım takılırsa Esc tuşuna basın.
 1. Kurulum komutunu çalıştırın:
 
    ```sh
-   curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+   curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/camsil/main/install.sh | sh
    ```
 
    - Beklenen: komut son sürümü indirir, SHA-256 değerini kontrol eder ve `/Applications/Camsil.app` kurar.
