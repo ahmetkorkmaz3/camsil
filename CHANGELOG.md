@@ -4,6 +4,8 @@ This file uses the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) form
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-09
+
 The first public release.
 
 ### Added
@@ -15,3 +17,6 @@ The first public release.
 - The progress shows on the screen. At 95% clean, the glass shines and Camsil closes.
 - Esc or Cmd+Q closes Camsil at any time. Camsil also closes after 2 minutes without input.
 - Install and update with one command: `install.sh`.
+
+[Unreleased]: https://github.com/ahmetkorkmaz3/camsil/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ahmetkorkmaz3/camsil/releases/tag/v0.1.0
