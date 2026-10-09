@@ -2,6 +2,17 @@ import Metal
 import XCTest
 @testable import CamsilCore
 
+/// Base class for the tests that need Metal. A machine without a Metal device (for example a CI
+/// virtual machine) skips these tests, so the other tests still run.
+class GPUTestCase: XCTestCase {
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        if MTLCreateSystemDefaultDevice() == nil {
+            throw XCTSkip("No Metal device. The GPU tests need an Apple Silicon Mac.")
+        }
+    }
+}
+
 enum TestGPU {
     static let context: MetalContext = {
         do { return try MetalContext() } catch { fatalError("Metal is not available: \(error)") }

@@ -1,7 +1,7 @@
 import XCTest
 @testable import CamsilCore
 
-final class DropletRendererTests: XCTestCase {
+final class DropletRendererTests: GPUTestCase {
     func testDropletWritesThicknessAtCenterOnly() throws {
         let textures = try SimulationTextures(device: TestGPU.context.device, size: SIMD2(32, 32))
         let renderer = try DropletRenderer(context: TestGPU.context)

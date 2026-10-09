@@ -1,5 +1,7 @@
-*.xcodeproj/
-build/
-DerivedData/
-Config/Local.xcconfig
+.superpowers/
+.build/
+.swiftpm/
+*.app
 .DS_Store
+build/
+.idea/

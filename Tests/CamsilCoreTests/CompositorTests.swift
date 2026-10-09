@@ -1,13 +1,14 @@
 import XCTest
 @testable import CamsilCore
 
-final class CompositorTests: XCTestCase {
+final class CompositorTests: GPUTestCase {
     private let n = 64
     private var textures: SimulationTextures!
     private var compositor: Compositor!
     private var screen: MTLTexture!
 
     override func setUpWithError() throws {
+        try super.setUpWithError()
         textures = try SimulationTextures(device: TestGPU.context.device, size: SIMD2(n, n))
         compositor = try Compositor(context: TestGPU.context, pixelFormat: .bgra8Unorm)
         screen = TestGPU.makeBGRA(width: n, height: n) { x, y in

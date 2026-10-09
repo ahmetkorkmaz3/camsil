@@ -1,7 +1,7 @@
 import XCTest
 @testable import CamsilCore
 
-final class SpriteRendererTests: XCTestCase {
+final class SpriteRendererTests: GPUTestCase {
     private func draw(_ sprite: Sprite, texture: MTLTexture?) throws -> [SIMD4<UInt8>] {
         let renderer = try SpriteRenderer(context: TestGPU.context, pixelFormat: .bgra8Unorm)
         let target = TestGPU.makeBGRA(width: 100, height: 100, usage: [.renderTarget, .shaderRead])

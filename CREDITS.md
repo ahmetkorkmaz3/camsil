@@ -8,4 +8,4 @@ All sounds are CC0 (public domain) from freesound.org.
 | squeak.wav | pending — add a CC0 file | pending — add a CC0 file |
 | done.wav | pending — add a CC0 file | pending — add a CC0 file |
 
-The app is silent until the three WAV files are added to `Camsil/Resources/Sounds/`.
+The app is silent until the three WAV files are added to `Resources/Sounds/`. `scripts/bundle.sh` copies them into the app.

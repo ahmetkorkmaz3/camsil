@@ -1,7 +1,7 @@
 import XCTest
 @testable import CamsilCore
 
-final class ProgressCounterTests: XCTestCase {
+final class ProgressCounterTests: GPUTestCase {
     func testMeanUsesMaxChannel() throws {
         let textures = try SimulationTextures(device: TestGPU.context.device, size: SIMD2(64, 32))
         TestGPU.fillRGBA16(textures.dirt, SIMD4(0.2, 0.6, 0.1, 1))

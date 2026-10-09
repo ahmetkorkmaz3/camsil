@@ -1,4 +1,0 @@
-// Screen Recording permission is bound to the code signature.
-// Put DEVELOPMENT_TEAM in Config/Local.xcconfig so the signature stays stable between builds.
-CODE_SIGN_STYLE = Automatic
-#include? "Local.xcconfig"

@@ -1,7 +1,7 @@
 import XCTest
 @testable import CamsilCore
 
-final class DirtGeneratorTests: XCTestCase {
+final class DirtGeneratorTests: GPUTestCase {
     private let size = SIMD2(256, 160)
 
     func testLayoutIsDeterministic() {

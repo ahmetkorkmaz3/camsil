@@ -1,50 +1,71 @@
-# Camsil
+<p align="center"><img src="site/icon.png" alt="Camsil icon" width="96" height="96"></p>
 
-Camsil needs a Mac with Apple Silicon (M1 or later) and macOS 14 or later.
+<h1 align="center">Camsil</h1>
+
+<p align="center">
+  <a href="https://github.com/ahmetkorkmaz3/Camsil/releases/latest"><img src="https://img.shields.io/github/v/release/ahmetkorkmaz3/Camsil" alt="Latest release"></a>
+  <a href="https://github.com/ahmetkorkmaz3/Camsil/actions/workflows/ci.yml"><img src="https://github.com/ahmetkorkmaz3/Camsil/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/macOS-14%2B-blue" alt="macOS 14 or later">
+  <img src="https://img.shields.io/badge/Apple%20Silicon-only-lightgrey" alt="Apple Silicon only">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/ahmetkorkmaz3/Camsil" alt="MIT license"></a>
+</p>
+
+<p align="center"><a href="https://ahmetkorkmaz3.github.io/Camsil/">Website</a> · <a href="#install">Install</a> · <a href="#use">Use</a> · <a href="CONTRIBUTING.md">Contributing</a></p>
 
 Your screen is a dirty window. Spray it, wipe it, make it shine.
 
-## Use
-
-1. Open Camsil. Give Screen Recording permission on the first start, then open Camsil again.
-2. Left click: spray. Right click or Space: change between bottle and cloth. 1 and 2 also select a tool.
-3. Wipe wet glass with the cloth. Dry wiping only spreads the dust.
-4. Esc or Cmd+Q closes Camsil at any time. Camsil also closes after 2 minutes without input.
-
-## Build
-
-    brew install xcodegen
-    xcodegen generate
-    xcodebuild -project Camsil.xcodeproj -scheme Camsil build
-
-Put your team ID in `Config/Local.xcconfig` (`DEVELOPMENT_TEAM = ...`). A stable signature keeps the Screen Recording permission between builds.
-
-- A free Apple ID "Personal Team" works for `DEVELOPMENT_TEAM`. Open Xcode > Settings > Accounts, add the Apple ID, then copy the team ID into `Config/Local.xcconfig`.
-- If macOS keeps asking for Screen Recording after a rebuild, reset the entry with `tccutil reset ScreenCapture com.ahmetkorkmaz.Camsil`, then open Camsil again.
-- The Metal Toolchain is needed once per Mac: `xcodebuild -downloadComponent MetalToolchain`.
-
-## Test
-
-    xcodebuild test -project Camsil.xcodeproj -scheme Camsil -destination 'platform=macOS'
-
-GPU tests need an Apple Silicon Mac.
+Camsil shows your main screen as a dusty glass pane. Spray water with the bottle, then wipe the wet glass with the cloth. When the glass is 95% clean, it shines and Camsil closes.
 
 ## Install
 
-    curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+Run this command in Terminal:
 
-`CAMSIL_VERSION=1.0.0` installs that version. The app is not notarized. `install.sh` downloads with curl, so macOS does not block it.
+```sh
+curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+```
 
-## Release
+The command downloads the latest release, checks the SHA-256 value, and installs the app in `/Applications`. Requirements: a Mac with Apple Silicon (M1 or later) and macOS 14 or later.
 
-1. Build the app and the zip file:
+**Update:** Run the same command again.
 
-        VERSION=1.0.0 scripts/bundle.sh
+**A specific version:** `curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | CAMSIL_VERSION=1.0.0 sh`
 
-2. Publish `build/Camsil-1.0.0.zip` and `build/Camsil-1.0.0.zip.sha256` as release `v1.0.0`:
+**Manual install:**
 
-        gh release create v1.0.0 build/Camsil-1.0.0.zip build/Camsil-1.0.0.zip.sha256
+1. Download the `Camsil-X.Y.Z.zip` file from the [Releases](https://github.com/ahmetkorkmaz3/Camsil/releases) page.
+2. Open the zip file. Move `Camsil.app` into `/Applications`.
+3. Open the app. macOS shows the "Apple could not verify" warning. Click **Done**.
+4. Open System Settings → Privacy & Security. At the bottom of the page, click **Open Anyway**.
 
-macOS binds the Screen Recording permission to the signature. Run `scripts/make-signing-cert.sh` once. It puts a "Camsil Self-Signed" certificate in the login keychain, and `bundle.sh` then uses it. Without the certificate, the app gets an ad-hoc signature, and macOS asks for the permission again after each build.
+The app is not notarized, so a file from the browser shows this warning. The install command does not show this warning.
 
-Sound credits are in `CREDITS.md`.
+**Uninstall:**
+
+```sh
+osascript -e 'quit app "Camsil"'
+rm -rf /Applications/Camsil.app
+tccutil reset ScreenCapture com.ahmetkorkmaz.Camsil
+```
+
+## Use
+
+1. Open Camsil. On the first start, give the Screen Recording permission. Then open Camsil again.
+2. Left click: spray. Right click or Space: change between the bottle and the cloth. The 1 and 2 keys also select a tool.
+3. Wipe wet glass with the cloth. Dry wiping only spreads the dust.
+4. Esc or Cmd+Q closes Camsil at any time. Camsil also closes after 2 minutes without input.
+
+**Screen Recording:** Camsil reads the screen image to draw the glass over it. The image stays in memory on the GPU. Camsil does not save it and does not send it anywhere. Camsil does not use the network.
+
+If macOS asks for Screen Recording again after an update, reset the entry and open Camsil again:
+
+```sh
+tccutil reset ScreenCapture com.ahmetkorkmaz.Camsil
+```
+
+## Contributing
+
+Build, tests, project structure, and pull request rules: [CONTRIBUTING.md](CONTRIBUTING.md). Release steps: [`docs/release.md`](docs/release.md). Sound credits: [CREDITS.md](CREDITS.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).

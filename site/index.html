@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="meta.title">Camsil — Clean your screen like a dirty window</title>
+  <meta name="description" data-i18n-attr="content:meta.description" content="Camsil is a small macOS toy. It turns your screen into a dirty window. Spray the glass with a bottle and wipe it with a cloth until it shines.">
+  <meta property="og:title" content="Camsil">
+  <meta property="og:description" content="A macOS toy that turns your screen into a dirty window. Spray it and wipe it until it shines.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ahmetkorkmaz3.github.io/Camsil/">
+  <meta property="og:image" content="https://ahmetkorkmaz3.github.io/Camsil/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Camsil: spray and wipe your screen until it shines.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <style>
+    :root {
+      --bg: #f6f9fb;
+      --bg-alt: #ecf2f6;
+      --surface: #ffffff;
+      --text: #10161c;
+      --muted: #56636f;
+      --border: #d9e3ea;
+      --accent: #1a6fc4;
+      --accent-2: #45a7e8;
+      --code-bg: #0e141b;
+      --code-text: #e4ecf3;
+      --key-bg: #ffffff;
+      --key-edge: #c5d1db;
+      --shadow: 0 20px 50px -20px rgba(16, 40, 64, .28);
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0a0f14;
+        --bg-alt: #10171e;
+        --surface: #151d26;
+        --text: #e6edf3;
+        --muted: #96a4b2;
+        --border: #24303c;
+        --accent: #62b4f5;
+        --accent-2: #45a7e8;
+        --code-bg: #060a0e;
+        --key-bg: #1d2731;
+        --key-edge: #0b1117;
+        --shadow: 0 20px 50px -20px rgba(0, 0, 0, .7);
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0a0f14;
+      --bg-alt: #10171e;
+      --surface: #151d26;
+      --text: #e6edf3;
+      --muted: #96a4b2;
+      --border: #24303c;
+      --accent: #62b4f5;
+      --accent-2: #45a7e8;
+      --code-bg: #060a0e;
+      --key-bg: #1d2731;
+      --key-edge: #0b1117;
+      --shadow: 0 20px 50px -20px rgba(0, 0, 0, .7);
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, pre, kbd { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
+    code { font-size: .9em; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: .1em .4em; overflow-wrap: anywhere; }
+
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+    /* Navigation */
+    nav { position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px); background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); }
+    .brand img { width: 28px; height: 28px; }
+    .brand:hover { text-decoration: none; }
+    .nav-links { display: flex; align-items: center; gap: 22px; font-size: 14px; }
+    .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    @media (max-width: 640px) { .nav-links .hide-sm { display: none; } }
+
+    /* Hero */
+    .hero { padding: 72px 0 56px; text-align: center; position: relative; overflow: hidden; }
+    .hero::before { content: ""; position: absolute; inset: -40% -20% auto; height: 520px; background: radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent); pointer-events: none; }
+    .hero > .wrap { position: relative; }
+    .hero-icon { width: 104px; height: 104px; filter: drop-shadow(0 14px 28px rgba(26, 111, 196, .35)); }
+    h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.08; letter-spacing: -.02em; margin: 20px 0 16px; }
+    h1 .grad { background: linear-gradient(90deg, var(--accent-2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lead { font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 660px; margin: 0 auto 32px; }
+    .badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; font-size: 13px; color: var(--muted); }
+    .badges span { border: 1px solid var(--border); background: var(--surface); padding: 4px 10px; border-radius: 999px; }
+
+    /* Install command */
+    .install { display: flex; align-items: center; gap: 8px; max-width: 760px; margin: 0 auto; background: var(--code-bg); color: var(--code-text); border-radius: 12px; padding: 8px 8px 8px 18px; box-shadow: var(--shadow); text-align: left; }
+    .install pre { margin: 0; flex: 1; min-width: 0; overflow-x: auto; font-size: 14px; white-space: pre; scrollbar-width: none; }
+    .install pre::-webkit-scrollbar { display: none; }
+    .install .prompt { color: #6b7a8a; user-select: none; }
+    .copy { flex: none; border: 0; border-radius: 8px; padding: 9px 14px; font: 600 13px/1 inherit; font-family: inherit; cursor: pointer; background: var(--accent-2); color: #fff; }
+    .copy:hover { filter: brightness(1.08); }
+    .copy:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 22px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 15px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+    .btn:hover { text-decoration: none; border-color: var(--accent); }
+    .btn svg { width: 18px; height: 18px; }
+
+    /* Dirty glass demo */
+    .demo { margin: 64px auto 0; max-width: 760px; }
+    .screen { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); background: #0d2236; }
+    .screen svg { display: block; width: 100%; height: auto; }
+    .hud { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 8px; font-size: 12px; font-weight: 600; color: #fff; }
+    .hud span { padding: 4px 10px; border-radius: 999px; background: rgba(8, 20, 32, .55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .demo-caption { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+
+    /* Sections */
+    section { padding: 80px 0; }
+    section.alt { background: var(--bg-alt); border-block: 1px solid var(--border); }
+    .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 700; color: var(--accent); }
+    h2 { font-size: clamp(26px, 4vw, 38px); line-height: 1.15; letter-spacing: -.015em; margin: 8px 0 14px; }
+    .section-lead { color: var(--muted); max-width: 640px; margin: 0 0 40px; font-size: 17px; }
+
+    .grid { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+    .card h3 { margin: 12px 0 6px; font-size: 17px; }
+    .card p { margin: 0; color: var(--muted); font-size: 15px; }
+    .ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent-2) 15%, transparent); color: var(--accent); }
+    .ico svg { width: 22px; height: 22px; }
+
+    /* Controls */
+    .controls { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); list-style: none; padding: 0; margin: 0; }
+    @media (max-width: 700px) { .controls { grid-template-columns: 1fr; } }
+    .controls li { display: flex; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+    .keys { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 150px; color: var(--muted); font-size: 13px; }
+    kbd { display: inline-flex; align-items: center; gap: 6px; min-width: 34px; justify-content: center; padding: 5px 10px; font-size: 13px; font-weight: 600; color: var(--text); background: var(--key-bg); border: 1px solid var(--border); border-bottom: 3px solid var(--key-edge); border-radius: 8px; line-height: 1.2; white-space: nowrap; }
+    kbd svg { width: 14px; height: 14px; }
+    .controls b { display: block; font-size: 16px; }
+    .controls span.txt { color: var(--muted); font-size: 15px; }
+    @media (max-width: 420px) { .controls li { flex-direction: column; align-items: flex-start; } .keys { min-width: 0; } }
+    .tip { margin-top: 18px; display: flex; gap: 12px; align-items: flex-start; background: color-mix(in srgb, var(--accent-2) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent-2) 35%, var(--border)); border-radius: 14px; padding: 16px 18px; }
+    .tip svg { flex: none; width: 22px; height: 22px; color: var(--accent); margin-top: 2px; }
+    .tip p { margin: 0; }
+
+    /* Privacy */
+    .split { display: grid; gap: 40px; grid-template-columns: 1fr 1fr; align-items: center; }
+    @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+    .list li { display: flex; gap: 12px; }
+    .list li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 9px; border-radius: 50%; background: var(--accent); }
+    .list b { display: block; }
+    .list span { color: var(--muted); font-size: 15px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+    .panel-head { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+    .panel-head b { color: var(--text); }
+    .panel-body { padding: 16px; display: grid; gap: 12px; }
+    .perm-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
+    .perm-row img { width: 32px; height: 32px; }
+    .perm-row .name { font-weight: 600; }
+    .switch { margin-left: auto; width: 38px; height: 22px; border-radius: 999px; background: #34c759; position: relative; flex: none; }
+    .switch::after { content: ""; position: absolute; right: 2px; top: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
+    .flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; color: var(--muted); }
+    .flow li { display: flex; gap: 10px; align-items: baseline; }
+    .flow li::before { content: "→"; color: var(--accent); font-weight: 700; }
+
+    /* Install section */
+    .code { background: var(--code-bg); color: var(--code-text); border-radius: 12px; padding: 16px 18px; overflow-x: auto; font-size: 14px; margin: 0; }
+    .code .c { color: #6b7a8a; }
+    details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-top: 12px; }
+    details summary { cursor: pointer; font-weight: 600; }
+    details[open] summary { margin-bottom: 10px; }
+    details ol { margin: 0; padding-left: 20px; color: var(--muted); }
+    details p { color: var(--muted); margin: 8px 0 0; }
+    .req { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; font-size: 14px; color: var(--muted); }
+    .req span { border: 1px solid var(--border); background: var(--surface); padding: 4px 10px; border-radius: 999px; }
+
+    footer { padding: 40px 0 56px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+    footer nav { position: static; background: none; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; display: flex; flex-wrap: wrap; gap: 18px; }
+    footer a { color: var(--muted); }
+
+    .lang-toggle { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; padding: 4px 10px; font: 600 13px/1.2 inherit; font-family: inherit; cursor: pointer; }
+    .lang-toggle:hover { border-color: var(--accent); }
+    .lang-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<nav aria-label="Main menu" data-i18n-attr="aria-label:nav.label">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="icon.png" alt="" width="28" height="28">Camsil</a>
+    <div class="nav-links">
+      <a class="hide-sm" href="#play" data-i18n="nav.play">How to play</a>
+      <a class="hide-sm" href="#privacy" data-i18n="nav.privacy">Privacy</a>
+      <a href="#install" data-i18n="nav.install">Install</a>
+      <a href="https://github.com/ahmetkorkmaz3/Camsil">GitHub</a>
+      <button type="button" class="lang-toggle" id="lang-toggle" hidden lang="tr" aria-label="Türkçe göster" aria-pressed="false">TR</button>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+  <header class="hero">
+    <div class="wrap">
+      <img class="hero-icon" src="icon.png" alt="Camsil app icon" data-i18n-attr="alt:hero.iconAlt" width="104" height="104">
+      <h1 data-i18n="hero.title">Your screen is a dirty window.<br><span class="grad">Clean it.</span></h1>
+      <p class="lead" data-i18n="hero.lead">Camsil is a small toy for the Mac. It puts dust, water spots, and fingerprints on your screen. Spray the glass with the bottle. Wipe it with the cloth until it shines.</p>
+
+      <div class="install">
+        <pre aria-label="Install command" data-i18n-attr="aria-label:hero.cmdLabel"><span class="prompt">$ </span><span id="cmd">curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh</span></pre>
+        <button class="copy" type="button" data-copy="cmd">Copy</button>
+      </div>
+      <div class="badges">
+        <span data-i18n="hero.badge.macos">macOS 14 or later</span>
+        <span data-i18n="hero.badge.arch">Apple Silicon (M1 or later)</span>
+        <span data-i18n="hero.badge.license">Free, MIT License</span>
+      </div>
+      <div class="actions">
+        <a class="btn" href="https://github.com/ahmetkorkmaz3/Camsil/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+          <span data-i18n="hero.download">Download the latest version</span>
+        </a>
+        <a class="btn" href="https://github.com/ahmetkorkmaz3/Camsil">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+          <span data-i18n="hero.source">Source code</span>
+        </a>
+      </div>
+
+      <div class="demo">
+        <div class="screen" role="img" aria-label="Example: a cloth wipes a clean line across a dusty screen" data-i18n-attr="aria-label:demo.label">
+          <svg id="glass" viewBox="0 0 760 400" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#5fb8f0"/>
+                <stop offset=".55" stop-color="#2b78c9"/>
+                <stop offset="1" stop-color="#173f7a"/>
+              </linearGradient>
+              <filter id="dust" x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/>
+                <feColorMatrix in="n" type="matrix" values="0 0 0 0 .78  0 0 0 0 .74  0 0 0 0 .66  0 0 0 -1.6 1.25"/>
+                <feComposite in2="SourceGraphic" operator="in"/>
+              </filter>
+              <filter id="soft"><feGaussianBlur stdDeviation="1.2"/></filter>
+              <mask id="wipe" maskUnits="userSpaceOnUse" x="0" y="0" width="760" height="400">
+                <rect width="760" height="400" fill="#fff"/>
+                <path d="M70 120 C 200 70, 330 150, 450 105 S 640 90, 700 130 M 690 200 C 560 250, 420 180, 300 230 S 120 260, 70 290"
+                      fill="none" stroke="#000" stroke-width="78" stroke-linecap="round" stroke-linejoin="round"
+                      pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" filter="url(#soft)">
+                  <animate attributeName="stroke-dashoffset" values="1;0;0;1" keyTimes="0;.6;.85;1" dur="9s" repeatCount="indefinite"/>
+                </path>
+              </mask>
+            </defs>
+
+            <!-- The "screen" behind the glass -->
+            <rect width="760" height="400" fill="url(#wall)"/>
+            <rect x="0" y="0" width="760" height="22" fill="#fff" opacity=".22"/>
+            <g fill="#fff" opacity=".9">
+              <rect x="60" y="62" width="300" height="200" rx="10" opacity=".92"/>
+              <rect x="400" y="120" width="290" height="220" rx="10" opacity=".85"/>
+            </g>
+            <g fill="#d7e3ee">
+              <rect x="60" y="62" width="300" height="26" rx="10"/>
+              <rect x="400" y="120" width="290" height="26" rx="10"/>
+            </g>
+            <g fill="#ff5f57"><circle cx="76" cy="75" r="5"/><circle cx="416" cy="133" r="5"/></g>
+            <g fill="#febc2e"><circle cx="92" cy="75" r="5"/><circle cx="432" cy="133" r="5"/></g>
+            <g fill="#28c840"><circle cx="108" cy="75" r="5"/><circle cx="448" cy="133" r="5"/></g>
+            <g fill="#b9c8d6">
+              <rect x="80" y="108" width="200" height="10" rx="5"/>
+              <rect x="80" y="130" width="250" height="10" rx="5"/>
+              <rect x="80" y="152" width="170" height="10" rx="5"/>
+              <rect x="80" y="190" width="120" height="50" rx="8" fill="#9fc7ec"/>
+              <rect x="420" y="166" width="230" height="10" rx="5"/>
+              <rect x="420" y="188" width="180" height="10" rx="5"/>
+              <rect x="420" y="226" width="250" height="90" rx="8" fill="#a7d3c2"/>
+            </g>
+
+            <!-- Dirt on the glass, removed by the wipe -->
+            <g mask="url(#wipe)">
+              <rect width="760" height="400" fill="#b8ad98" opacity=".5"/>
+              <rect width="760" height="400" fill="#fff" filter="url(#dust)" opacity=".55"/>
+              <g fill="none" stroke="#efe8da" stroke-opacity=".55" stroke-width="2.5">
+                <circle cx="180" cy="310" r="16"/><circle cx="214" cy="336" r="9"/>
+                <circle cx="560" cy="60" r="13"/><circle cx="620" cy="360" r="18"/>
+                <circle cx="330" cy="40" r="10"/><circle cx="470" cy="300" r="8"/>
+              </g>
+              <g fill="none" stroke="#5b4f40" stroke-opacity=".28" stroke-width="2">
+                <g transform="translate(600 250) rotate(-25)">
+                  <ellipse rx="10" ry="15"/><ellipse rx="16" ry="22"/><ellipse rx="22" ry="29"/><ellipse rx="28" ry="36"/>
+                </g>
+                <g transform="translate(250 190) rotate(18)">
+                  <ellipse rx="9" ry="13"/><ellipse rx="15" ry="20"/><ellipse rx="21" ry="27"/>
+                </g>
+              </g>
+            </g>
+
+            <!-- Water droplets that run down -->
+            <g fill="#e9f6ff" fill-opacity=".75" stroke="#ffffff" stroke-opacity=".9" stroke-width="1">
+              <circle cx="150" cy="90" r="5">
+                <animate attributeName="cy" values="90;170" dur="8s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="1;1;0" keyTimes="0;.7;1" dur="8s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="380" cy="60" r="4">
+                <animate attributeName="cy" values="60;150" dur="8s" begin="-3s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="1;1;0" keyTimes="0;.7;1" dur="8s" begin="-3s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="520" cy="180" r="6">
+                <animate attributeName="cy" values="180;280" dur="8s" begin="-5s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="1;1;0" keyTimes="0;.7;1" dur="8s" begin="-5s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="660" cy="70" r="3.5">
+                <animate attributeName="cy" values="70;140" dur="8s" begin="-1.5s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="1;1;0" keyTimes="0;.7;1" dur="8s" begin="-1.5s" repeatCount="indefinite"/>
+              </circle>
+            </g>
+
+            <!-- Shine at the end of the wipe -->
+            <g fill="#fff" opacity="0">
+              <path d="M455 104 l5 -18 l5 18 l18 5 l-18 5 l-5 18 l-5 -18 l-18 -5 z"/>
+              <path d="M245 240 l3 -11 l3 11 l11 3 l-11 3 l-3 11 l-3 -11 l-11 -3 z"/>
+              <animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;.6;.68;.82;1" dur="9s" repeatCount="indefinite"/>
+            </g>
+
+            <!-- The cloth -->
+            <g id="cloth">
+              <rect x="-26" y="-20" width="52" height="40" rx="9" fill="#f2c94c" stroke="#c99a1a" stroke-width="2"/>
+              <path d="M-18 -8 h36 M-18 2 h36 M-18 12 h36" stroke="#d9a92a" stroke-width="2"/>
+              <animateMotion dur="9s" repeatCount="indefinite" keyPoints="0;1;1;1" keyTimes="0;.6;.85;1" calcMode="linear"
+                             path="M70 120 C 200 70, 330 150, 450 105 S 640 90, 700 130 L 690 200 C 560 250, 420 180, 300 230 S 120 260, 70 290"/>
+              <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;.6;.66;.97;1" dur="9s" repeatCount="indefinite"/>
+            </g>
+          </svg>
+          <div class="hud" aria-hidden="true">
+            <span data-i18n="demo.tool">Tool: cloth</span>
+            <span data-i18n="demo.clean">Clean: 62%</span>
+          </div>
+        </div>
+        <p class="demo-caption" data-i18n="demo.caption">An illustration. The app works on a live image of your real screen.</p>
+      </div>
+    </div>
+  </header>
+
+  <section id="play" class="alt">
+    <div class="wrap">
+      <div class="eyebrow" data-i18n="play.eyebrow">How to play</div>
+      <h2 data-i18n="play.title">Spray, wipe, shine.</h2>
+      <p class="section-lead" data-i18n="play.lead">You use the mouse and a few keys. At 95% clean, the session ends with a shine.</p>
+      <ul class="controls">
+        <li>
+          <div class="keys"><kbd><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6M6 9h6" /></svg><span data-i18n="play.leftClick">Left click</span></kbd></div>
+          <div><b data-i18n="play.spray.title">Spray</b><span class="txt" data-i18n="play.spray.text">Hold the button to spray water on the glass with the bottle.</span></div>
+        </li>
+        <li>
+          <div class="keys"><kbd><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6M12 9h6" /></svg><span data-i18n="play.rightClick">Right click</span></kbd><span data-i18n="play.or">or</span><kbd data-i18n="play.space">Space</kbd></div>
+          <div><b data-i18n="play.switch.title">Switch the tool</b><span class="txt" data-i18n="play.switch.text">Change between the bottle and the cloth.</span></div>
+        </li>
+        <li>
+          <div class="keys"><kbd>1</kbd><kbd>2</kbd></div>
+          <div><b data-i18n="play.select.title">Select a tool</b><span class="txt" data-i18n="play.select.text">Key 1 selects the bottle. Key 2 selects the cloth.</span></div>
+        </li>
+        <li>
+          <div class="keys"><kbd>Esc</kbd><span data-i18n="play.or">or</span><kbd>⌘Q</kbd></div>
+          <div><b data-i18n="play.quit.title">Quit</b><span class="txt" data-i18n="play.quit.text">Stop at any time. Camsil also quits after 2 minutes without input.</span></div>
+        </li>
+      </ul>
+      <div class="tip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11Z"/></svg>
+        <p data-i18n="play.tip"><b>Tip:</b> Spray first, then wipe the wet glass with the cloth. Dry wiping only spreads the dust.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="eyebrow" data-i18n="features.eyebrow">Features</div>
+      <h2 data-i18n="features.title">A dirty window that acts like a real one.</h2>
+      <p class="section-lead" data-i18n="features.lead">The glass gets wet, the water runs down, and the cloth squeaks.</p>
+      <div class="grid">
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="8" r="2"/><circle cx="16" cy="6" r="1.5"/><circle cx="12" cy="13" r="2.5"/><circle cx="6" cy="17" r="1.5"/><circle cx="17" cy="16" r="2"/></svg></div>
+          <h3 data-i18n="features.dirt.title">Three types of dirt</h3>
+          <p data-i18n="features.dirt.text">Dust, water spots, and fingerprints cover the screen. Each type needs a different amount of work.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c2.5 3.5 5 6.5 5 9.5a5 5 0 0 1-10 0C7 9.5 9.5 6.5 12 3Z"/><path d="M12 19v2"/></svg></div>
+          <h3 data-i18n="features.drops.title">Water droplets</h3>
+          <p data-i18n="features.drops.text">The droplets from the spray run down the glass. They dry in about 8 seconds.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></div>
+          <h3 data-i18n="features.squeak.title">Cloth squeak</h3>
+          <p data-i18n="features.squeak.text">The cloth makes a squeak sound on the glass. The pitch changes with the speed of your hand.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z"/></svg></div>
+          <h3 data-i18n="features.progress.title">Progress and shine</h3>
+          <p data-i18n="features.progress.text">A readout shows how clean the glass is. At 95% clean, the session ends with a shine effect.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9zM9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></div>
+          <h3 data-i18n="features.gpu.title">GPU simulation</h3>
+          <p data-i18n="features.gpu.text">Metal runs the water and dirt simulation on the GPU, on top of a live image of your screen.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h3 data-i18n="features.idle.title">Stops by itself</h3>
+          <p data-i18n="features.idle.text">Press Esc or ⌘Q to quit. If you do not touch the mouse or keyboard for 2 minutes, Camsil quits.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="privacy" class="alt">
+    <div class="wrap split">
+      <div>
+        <div class="eyebrow" data-i18n="privacy.eyebrow">Privacy</div>
+        <h2 data-i18n="privacy.title">Your screen stays on your Mac.</h2>
+        <p class="section-lead" style="margin-bottom: 24px" data-i18n="privacy.lead">Camsil uses ScreenCaptureKit to get a live image of the main screen. It draws the dirt on top of this image.</p>
+        <ul class="list">
+          <li><div><b data-i18n="privacy.record.title">No recordings</b><span data-i18n="privacy.record.text">Camsil does not record or save the screen image.</span></div></li>
+          <li><div><b data-i18n="privacy.network.title">No network access</b><span data-i18n="privacy.network.text">The app does not connect to the internet. No data leaves your Mac.</span></div></li>
+          <li><div><b data-i18n="privacy.source.title">Open source</b><span data-i18n="privacy.source.text">You can read all of the code on GitHub.</span></div></li>
+        </ul>
+      </div>
+      <div class="panel" role="img" aria-label="Example: the Screen Recording permission for Camsil in System Settings" data-i18n-attr="aria-label:privacy.panelLabel">
+        <div class="panel-head" data-i18n="privacy.panelHead">System Settings → Privacy &amp; Security → <b>Screen Recording</b></div>
+        <div class="panel-body">
+          <div class="perm-row"><img src="icon.png" alt="" width="32" height="32"><span class="name">Camsil</span><span class="switch"></span></div>
+          <ul class="flow">
+            <li data-i18n="privacy.flow.1">macOS asks for the permission on the first start.</li>
+            <li data-i18n="privacy.flow.2">Turn on Camsil in the list.</li>
+            <li data-i18n="privacy.flow.3">Open Camsil again.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <div class="eyebrow" data-i18n="install.eyebrow">Install</div>
+      <h2 data-i18n="install.title">Install with one command.</h2>
+      <p class="section-lead" data-i18n="install.lead">The command downloads the latest version from GitHub Releases, checks its SHA-256 value, and installs it in <code>/Applications</code>.</p>
+      <div class="req">
+        <span data-i18n="install.req.mac">Apple Silicon Mac (M1 or later)</span>
+        <span data-i18n="install.req.os">macOS 14 or later</span>
+        <span data-i18n="install.req.perm">Screen Recording permission</span>
+      </div>
+      <pre class="code"><span class="c" data-i18n="install.comment1"># Install and update</span>
+curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | sh
+
+<span class="c" data-i18n="install.comment2"># A specific version</span>
+curl -fsSL https://raw.githubusercontent.com/ahmetkorkmaz3/Camsil/main/install.sh | CAMSIL_VERSION=1.0.0 sh</pre>
+
+      <details>
+        <summary data-i18n="install.manual.title">Manual install</summary>
+        <ol>
+          <li data-i18n="install.manual.1">Download <code>Camsil-X.Y.Z.zip</code> from the <a href="https://github.com/ahmetkorkmaz3/Camsil/releases/latest">Releases</a> page.</li>
+          <li data-i18n="install.manual.2">Open the zip file. Move <code>Camsil.app</code> into <code>/Applications</code>.</li>
+          <li data-i18n="install.manual.3">Open the app. macOS shows the "Apple could not verify" warning. Click <b>Done</b>.</li>
+          <li data-i18n="install.manual.4">Open System Settings → Privacy &amp; Security. Click <b>Open Anyway</b>.</li>
+        </ol>
+        <p data-i18n="install.manual.note">The app is not notarized, so a file from a browser download shows this warning. The install command does not show it.</p>
+      </details>
+
+      <details>
+        <summary data-i18n="install.remove.title">Uninstall</summary>
+        <pre class="code">osascript -e 'quit app "Camsil"'
+rm -rf /Applications/Camsil.app
+tccutil reset ScreenCapture com.ahmetkorkmaz.Camsil</pre>
+        <p data-i18n="install.remove.note">The last command removes the Screen Recording permission.</p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span data-i18n="footer.license">Camsil · MIT License</span>
+    <nav aria-label="Footer menu" data-i18n-attr="aria-label:footer.label">
+      <a href="https://github.com/ahmetkorkmaz3/Camsil">GitHub</a>
+      <a href="https://github.com/ahmetkorkmaz3/Camsil/releases" data-i18n="footer.releases">Releases</a>
+    </nav>
+  </div>
+</footer>
+
+<p class="sr-only" aria-live="polite" id="status"></p>
+
+<script>
+  // Turkish texts. The English texts are in the HTML, so the page works without this script.
+  var TR = {
+    "meta.title": "Camsil — Ekranınızı kirli bir cam gibi temizleyin",
+    "meta.description": "Camsil, Mac için küçük bir oyuncaktır. Ekranınızı kirli bir cama çevirir. Camı şişeyle spreyleyin ve parlayana kadar bezle silin.",
+    "nav.label": "Ana menü",
+    "nav.play": "Nasıl oynanır",
+    "nav.privacy": "Gizlilik",
+    "nav.install": "Kurulum",
+    "hero.iconAlt": "Camsil uygulama ikonu",
+    "hero.title": "Ekranınız kirli bir cam.<br><span class=\"grad\">Temizleyin.</span>",
+    "hero.lead": "Camsil, Mac için küçük bir oyuncaktır. Ekranınıza toz, su lekesi ve parmak izi koyar. Camı şişeyle spreyleyin. Parlayana kadar bezle silin.",
+    "hero.cmdLabel": "Kurulum komutu",
+    "hero.badge.macos": "macOS 14 ve üstü",
+    "hero.badge.arch": "Apple Silicon (M1 ve üstü)",
+    "hero.badge.license": "Ücretsiz, MIT lisansı",
+    "hero.download": "Son sürümü indir",
+    "hero.source": "Kaynak kodu",
+    "demo.label": "Örnek: bir bez tozlu ekranda temiz bir iz bırakıyor",
+    "demo.tool": "Araç: bez",
+    "demo.clean": "Temiz: %62",
+    "demo.caption": "Bu bir çizimdir. Uygulama gerçek ekranınızın canlı görüntüsü üzerinde çalışır.",
+    "play.eyebrow": "Nasıl oynanır",
+    "play.title": "Sprey, sil, parlat.",
+    "play.lead": "Fareyi ve birkaç tuşu kullanırsınız. Cam %95 temiz olunca oturum bir parlama ile biter.",
+    "play.leftClick": "Sol tık",
+    "play.rightClick": "Sağ tık",
+    "play.or": "veya",
+    "play.space": "Boşluk",
+    "play.spray.title": "Sprey",
+    "play.spray.text": "Şişeyle cama su sıkmak için tuşu basılı tutun.",
+    "play.switch.title": "Aracı değiştir",
+    "play.switch.text": "Şişe ile bez arasında geçiş yapın.",
+    "play.select.title": "Araç seç",
+    "play.select.text": "1 tuşu şişeyi seçer. 2 tuşu bezi seçer.",
+    "play.quit.title": "Çık",
+    "play.quit.text": "İstediğiniz an durun. Camsil, 2 dakika hiçbir giriş olmazsa kendiliğinden kapanır.",
+    "play.tip": "<b>İpucu:</b> Önce spreyleyin, sonra ıslak camı bezle silin. Kuru silmek tozu sadece dağıtır.",
+    "features.eyebrow": "Özellikler",
+    "features.title": "Gerçek bir cam gibi davranan kirli bir cam.",
+    "features.lead": "Cam ıslanır, su aşağı akar ve bez gıcırdar.",
+    "features.dirt.title": "Üç tür kir",
+    "features.dirt.text": "Toz, su lekesi ve parmak izi ekranı kaplar. Her tür farklı miktarda emek ister.",
+    "features.drops.title": "Su damlaları",
+    "features.drops.text": "Spreyden çıkan damlalar camdan aşağı akar. Yaklaşık 8 saniyede kururlar.",
+    "features.squeak.title": "Bez gıcırtısı",
+    "features.squeak.text": "Bez camda gıcırdar. Sesin tonu elinizin hızına göre değişir.",
+    "features.progress.title": "İlerleme ve parlama",
+    "features.progress.text": "Bir gösterge camın ne kadar temiz olduğunu gösterir. Cam %95 temiz olunca oturum bir parlama efekti ile biter.",
+    "features.gpu.title": "GPU simülasyonu",
+    "features.gpu.text": "Metal, su ve kir simülasyonunu ekranınızın canlı görüntüsü üzerinde GPU'da çalıştırır.",
+    "features.idle.title": "Kendiliğinden durur",
+    "features.idle.text": "Çıkmak için Esc veya ⌘Q tuşuna basın. Fareye veya klavyeye 2 dakika dokunmazsanız Camsil kapanır.",
+    "privacy.eyebrow": "Gizlilik",
+    "privacy.title": "Ekranınız Mac'inizde kalır.",
+    "privacy.lead": "Camsil, ana ekranın canlı görüntüsünü almak için ScreenCaptureKit kullanır. Kiri bu görüntünün üzerine çizer.",
+    "privacy.record.title": "Kayıt yok",
+    "privacy.record.text": "Camsil ekran görüntüsünü kaydetmez ve saklamaz.",
+    "privacy.network.title": "Ağ erişimi yok",
+    "privacy.network.text": "Uygulama internete bağlanmaz. Hiçbir veri Mac'inizden çıkmaz.",
+    "privacy.source.title": "Açık kaynak",
+    "privacy.source.text": "Kodun tamamını GitHub'da okuyabilirsiniz.",
+    "privacy.panelLabel": "Örnek: Sistem Ayarları'nda Camsil için Ekran Kaydı izni",
+    "privacy.panelHead": "Sistem Ayarları → Gizlilik ve Güvenlik → <b>Ekran Kaydı</b>",
+    "privacy.flow.1": "macOS ilk açılışta izin ister.",
+    "privacy.flow.2": "Listede Camsil'i açın.",
+    "privacy.flow.3": "Camsil'i yeniden açın.",
+    "install.eyebrow": "Kurulum",
+    "install.title": "Tek komutla kurun.",
+    "install.lead": "Komut, GitHub Releases'tan son sürümü indirir, SHA-256 değerini kontrol eder ve <code>/Applications</code> içine kurar.",
+    "install.req.mac": "Apple Silicon Mac (M1 ve üstü)",
+    "install.req.os": "macOS 14 ve üstü",
+    "install.req.perm": "Ekran Kaydı izni",
+    "install.comment1": "# Kurulum ve güncelleme",
+    "install.comment2": "# Belirli bir sürüm",
+    "install.manual.title": "Elle kurulum",
+    "install.manual.1": "<a href=\"https://github.com/ahmetkorkmaz3/Camsil/releases/latest\">Releases</a> sayfasından <code>Camsil-X.Y.Z.zip</code> dosyasını indirin.",
+    "install.manual.2": "Zip dosyasını açın. <code>Camsil.app</code> dosyasını <code>/Applications</code> içine taşıyın.",
+    "install.manual.3": "Uygulamayı açın. macOS \"Apple doğrulayamadı\" uyarısını gösterir. <b>Bitti</b> düğmesine basın.",
+    "install.manual.4": "Sistem Ayarları → Gizlilik ve Güvenlik sayfasını açın. <b>Yine de Aç</b> düğmesine basın.",
+    "install.manual.note": "Uygulama notarize edilmedi. Bu nedenle tarayıcıdan indirilen dosyada bu uyarı çıkar. Kurulum komutu bu uyarıyı göstermez.",
+    "install.remove.title": "Kaldırma",
+    "install.remove.note": "Son komut Ekran Kaydı iznini siler.",
+    "footer.label": "Alt menü",
+    "footer.license": "Camsil · MIT lisansı",
+    "footer.releases": "Sürümler",
+    "copy.idle": "Kopyala",
+    "copy.done": "Kopyalandı",
+    "copy.status": "Komut panoya kopyalandı."
+  };
+  var STORE_KEY = "camsil-lang";
+  var currentLang = "en";
+  var original = {};
+
+  // Storage can be blocked (private window, blocked site data). The page then opens in English.
+  function readLang() {
+    try { return localStorage.getItem(STORE_KEY) === "tr" ? "tr" : "en"; } catch (e) { return "en"; }
+  }
+  function saveLang(lang) {
+    try { localStorage.setItem(STORE_KEY, lang); } catch (e) {}
+  }
+  function t(key, english) {
+    return currentLang === "tr" && TR[key] ? TR[key] : english;
+  }
+  function translated(key, store) {
+    if (currentLang !== "tr") return original[store];
+    if (!TR[key]) console.warn("Missing Turkish text: " + key);
+    return TR[key] || original[store];
+  }
+
+  function apply(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var key = el.dataset.i18n;
+      if (!(key in original)) original[key] = el.innerHTML;
+      el.innerHTML = translated(key, key);
+    });
+    document.querySelectorAll("[data-i18n-attr]").forEach(function (el) {
+      var parts = el.dataset.i18nAttr.split(":"), attr = parts[0], key = parts[1], store = "attr:" + key;
+      if (!(store in original)) original[store] = el.getAttribute(attr);
+      el.setAttribute(attr, translated(key, store));
+    });
+    document.querySelectorAll("[data-copy]").forEach(function (button) {
+      button.textContent = t("copy.idle", "Copy");
+    });
+    var toggle = document.getElementById("lang-toggle");
+    toggle.textContent = lang === "tr" ? "EN" : "TR";
+    toggle.lang = lang === "tr" ? "en" : "tr";
+    toggle.setAttribute("aria-label", lang === "tr" ? "Show in English" : "Türkçe göster");
+    toggle.setAttribute("aria-pressed", String(lang === "tr"));
+  }
+
+  var toggle = document.getElementById("lang-toggle");
+  toggle.hidden = false;
+  toggle.addEventListener("click", function () {
+    var next = currentLang === "tr" ? "en" : "tr";
+    saveLang(next);
+    apply(next);
+  });
+  apply(readLang());
+
+  document.querySelectorAll("[data-copy]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var text = document.getElementById(button.dataset.copy).textContent;
+      var done = function () {
+        button.textContent = t("copy.done", "Copied");
+        document.getElementById("status").textContent = t("copy.status", "Command copied to the clipboard.");
+        setTimeout(function () { button.textContent = t("copy.idle", "Copy"); }, 1800);
+      };
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(done, function () {});
+      }
+    });
+  });
+
+  // The demo uses SVG animation. With reduced motion, show one still frame: half wiped, no cloth.
+  var glass = document.getElementById("glass");
+  var motion = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  function setMotion() {
+    if (!glass.pauseAnimations) return;
+    if (motion && motion.matches) {
+      glass.setCurrentTime(4.2);
+      glass.pauseAnimations();
+    } else {
+      glass.unpauseAnimations();
+    }
+  }
+  setMotion();
+  if (motion && motion.addEventListener) motion.addEventListener("change", setMotion);
+</script>
+</body>
+</html>

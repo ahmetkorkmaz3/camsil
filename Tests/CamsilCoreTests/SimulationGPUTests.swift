@@ -1,12 +1,13 @@
 import XCTest
 @testable import CamsilCore
 
-final class SimulationGPUTests: XCTestCase {
+final class SimulationGPUTests: GPUTestCase {
     private let size = SIMD2(64, 64)
     private var textures: SimulationTextures!
     private var sim: SimulationGPU!
 
     override func setUpWithError() throws {
+        try super.setUpWithError()
         textures = try SimulationTextures(device: TestGPU.context.device, size: size)
         sim = try SimulationGPU(context: TestGPU.context, textures: textures)
     }
