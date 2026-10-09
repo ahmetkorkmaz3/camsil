@@ -2,28 +2,16 @@ import AppKit
 import CoreGraphics
 
 enum PermissionGate {
-    private static let requestedKey = "didRequestScreenCapture"
-
-    /// Returns true when Screen Recording is allowed. Otherwise returns false after one dialog:
-    /// the system prompt on the first launch, our own alert on later launches.
+    /// Returns true when Screen Recording is allowed. Otherwise asks for it and returns false.
     static func ensureScreenRecording() -> Bool {
         if CGPreflightScreenCaptureAccess() { return true }
-        let defaults = UserDefaults.standard
-        if !defaults.bool(forKey: requestedKey) {
-            // The system prompt has its own "Open System Settings" button.
-            defaults.set(true, forKey: requestedKey)
-            CGRequestScreenCaptureAccess()
-            return false
-        }
-        let alert = NSAlert()
-        alert.messageText = "Ekran Kaydı izni gerekli"
-        alert.informativeText = "Camsil, kirli camın arkasındaki ekranı göstermek için Ekran Kaydı iznini kullanır. Sistem Ayarları'nda izni ver ve Camsil'i yeniden aç."
-        alert.addButton(withTitle: "Sistem Ayarları'nı aç")
-        alert.addButton(withTitle: "Kapat")
-        NSApp.activate()
-        if alert.runModal() == .alertFirstButtonReturn,
-           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
-            NSWorkspace.shared.open(url)
+        // This call also puts Camsil in the Screen Recording list, for example after
+        // `tccutil reset`. macOS shows its own prompt only when no decision exists.
+        if !CGRequestScreenCaptureAccess() {
+            // A window of an inactive app can open behind other windows. System Settings always shows.
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                NSWorkspace.shared.open(url)
+            }
         }
         return false
     }

@@ -1,6 +1,9 @@
 import AppKit
 import CamsilCore
 import MetalKit
+import os
+
+private let log = Logger(subsystem: "com.ahmetkorkmaz.Camsil", category: "app")
 
 final class AppController: NSObject, NSApplicationDelegate {
     private var window: OverlayWindow?
@@ -23,6 +26,7 @@ final class AppController: NSObject, NSApplicationDelegate {
             fail("Bu Mac'te Metal kullanılamıyor.")
             return
         }
+        log.notice("launch, active: \(NSApp.isActive)")
         guard PermissionGate.ensureScreenRecording() else {
             NSApp.terminate(nil)
             return
@@ -92,11 +96,15 @@ final class AppController: NSObject, NSApplicationDelegate {
     private func firstFrameArrived() {
         guard !didGetFirstFrame, !isClosing else { return }
         didGetFirstFrame = true
+        // From now on the overlay takes all clicks. A click while Camsil is not active
+        // makes Camsil active again, so Esc always has a way back.
+        window?.ignoresMouseEvents = false
         sendMousePosition()
         NotificationCenter.default.addObserver(self, selector: #selector(appResignedActive),
                                                name: NSApplication.didResignActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appBecameActive),
                                                name: NSApplication.didBecomeActiveNotification, object: nil)
+        log.notice("first frame, active: \(NSApp.isActive)")
         if NSApp.isActive {
             takeInput()
         } else {
@@ -132,13 +140,15 @@ final class AppController: NSObject, NSApplicationDelegate {
         if NSScreen.screens.first?.frame != screenFrame { quit() }
     }
 
-    /// While another app is active, the overlay still shows the dirt but lets clicks through. Cmd+Tab back to Camsil.
+    /// While another app is active, the overlay still shows the dirt and the cursor.
+    /// A click on the overlay makes Camsil active again.
     @objc private func appResignedActive() {
-        window?.ignoresMouseEvents = true
+        log.notice("resigned active")
         setCursorHidden(false)
     }
 
     @objc private func appBecameActive() {
+        log.notice("became active")
         takeInput()
     }
 
