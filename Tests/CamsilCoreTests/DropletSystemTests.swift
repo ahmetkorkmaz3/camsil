@@ -15,6 +15,15 @@ final class DropletSystemTests: XCTestCase {
         }
     }
 
+    func testLandAddsAndMergesDroplets() {
+        let system = DropletSystem(bounds: bounds)
+        system.land([Droplet(position: SIMD2(100, 100), radius: 3, velocity: 0),
+                     Droplet(position: SIMD2(101, 100), radius: 4, velocity: 0),
+                     Droplet(position: SIMD2(-5, 100), radius: 4, velocity: 0)])
+        XCTAssertEqual(system.droplets.count, 1)
+        XCTAssertEqual(system.droplets[0].radius, 5, accuracy: 0.001)
+    }
+
     func testSmallDropletsEvaporate() {
         let system = DropletSystem(bounds: bounds)
         system.add(Droplet(position: SIMD2(10, 10), radius: 1, velocity: 0))

@@ -22,6 +22,7 @@ final class CleaningScene: NSObject, MTKViewDelegate {
     private let progressCounter: ProgressCounter
     private let tools = ToolController()
     private let droplets: DropletSystem
+    private let mist = MistSystem()
     /// Nil until the first screen frame. The session clock starts there.
     private var session: SessionController?
     private let cleanProgress: CleanProgress
@@ -32,7 +33,14 @@ final class CleaningScene: NSObject, MTKViewDelegate {
     private var lastInputTime: Double
     private var lastProgressTime: Double = 0
     private var lastSprayTime: Double = -10
+    private let startTime: Double
     private var clothAngle: Float = 0
+    private var clothVelocity: SIMD2<Float> = .zero
+    private var clothLift: Float = 1
+    private var lastCursor: SIMD2<Float>?
+    /// The hand that holds the bottle. It follows the cursor on a spring.
+    private var handPosition: SIMD2<Float>?
+    private var handVelocity: SIMD2<Float> = .zero
     private var wipeSpeed: Float = 0
     private var previousPhase: SessionPhase = .intro
     private var debugMode = 0
@@ -75,6 +83,7 @@ final class CleaningScene: NSObject, MTKViewDelegate {
         let now = CACurrentMediaTime()
         lastFrameTime = now
         lastInputTime = now
+        startTime = now
         super.init()
     }
 
@@ -109,16 +118,15 @@ final class CleaningScene: NSObject, MTKViewDelegate {
         var actions = pending
         pending.removeAll()
         if isActive { actions += tools.tick(time: now) }
+        updateHand(dt: dt)
 
         var wetCircles: [SIMD4<Float>] = []
         var wiped: Float = 0
         for action in actions {
             switch action {
             case .spray(let p):
-                let c = space.toSim(p)
-                let r = space.lengthToSim(Tuning.sprayRadiusPoints)
-                wetCircles.append(SIMD4(c.x, c.y, r * 0.8, Tuning.sprayWetAmount))
-                droplets.spray(center: c, radius: r, rng: &rng)
+                // The water reaches the glass when the mist lands, a little after the trigger.
+                mist.spray(from: bottlePose(now: now).nozzle, to: p, radius: Tuning.sprayRadiusPoints, rng: &rng)
                 sound.playSpray()
                 lastSprayTime = now
             case .wipe(let a, let b):
@@ -127,7 +135,6 @@ final class CleaningScene: NSObject, MTKViewDelegate {
                 droplets.wipe(from: space.toSim(a), to: space.toSim(b), radius: r)
                 let d = b - a
                 wiped += simd_length(d)
-                clothAngle += (max(-0.35, min(0.35, d.x * 0.02)) - clothAngle) * 0.2
             case .toolChanged:
                 break
             }
@@ -135,6 +142,14 @@ final class CleaningScene: NSObject, MTKViewDelegate {
         wipeSpeed = wipeSpeed * 0.8 + (wiped / max(dt, 0.001)) * 0.2
         sound.setSqueak(speed: isActive && tools.tool == .cloth && tools.isPressed ? wipeSpeed : 0)
 
+        let landing = mist.step(dt: dt)
+        droplets.land(landing.drops.map {
+            Droplet(position: space.toSim(SIMD2($0.x, $0.y)), radius: $0.z, velocity: 0)
+        })
+        for p in landing.impacts {
+            let c = space.toSim(p)
+            wetCircles.append(SIMD4(c.x, c.y, space.lengthToSim(Tuning.sprayRadiusPoints) * 0.8, Tuning.sprayWetAmount))
+        }
         for t in droplets.step(dt: dt) {
             wetCircles.append(SIMD4(t.x, t.y, t.z * 1.2, Tuning.trailWetAmount))
         }
@@ -168,8 +183,7 @@ final class CleaningScene: NSObject, MTKViewDelegate {
                                              sparkle: session.sparkle, debugMode: debugMode)
             compositor.encode(encoder: encoder, screen: screen, blur: blur, textures: textures, uniforms: uniforms)
             if isActive {
-                sprites.draw(toolSprite(now: now), texture: tools.tool == .bottle ? bottle : nil,
-                             viewSize: space.viewSizePoints, encoder: encoder)
+                drawTool(now: now, encoder: encoder)
             }
             encoder.endEncoding()
             cb.present(drawable)
@@ -192,19 +206,70 @@ final class CleaningScene: NSObject, MTKViewDelegate {
         onFirstFrame?()
     }
 
-    private func toolSprite(now: Double) -> Sprite {
+    /// Moves the hand and the cloth with the cursor. Call once per frame.
+    private func updateHand(dt: Float) {
         let cursor = tools.cursor
+        let frameVelocity = lastCursor.map { (cursor - $0) / max(dt, 0.001) } ?? .zero
+        lastCursor = cursor
+        clothVelocity += (frameVelocity - clothVelocity) * 0.3
+        let lift: Float = tools.tool == .cloth && tools.isPressed ? 0 : 1
+        clothLift += (lift - clothLift) * min(1, dt * 12)
+        let twist = max(-0.3, min(0.3, clothVelocity.x * 0.00025))
+        clothAngle += (twist - clothAngle) * min(1, dt * 6)
+
+        // A soft spring with a small overshoot, so the bottle feels heavy in the hand.
+        let target = cursor + Tuning.nozzleOffsetPoints
+        guard var hand = handPosition, tools.tool == .bottle else {
+            handPosition = target
+            handVelocity = .zero
+            return
+        }
+        let stiffness: Float = 260, damping: Float = 24
+        handVelocity += ((target - hand) * stiffness - handVelocity * damping) * dt
+        hand += handVelocity * dt
+        handPosition = hand
+    }
+
+    /// The nozzle tip and the bottle sprite for this frame.
+    private func bottlePose(now: Double) -> (nozzle: SIMD2<Float>, sprite: Sprite) {
+        let hand = handPosition ?? tools.cursor + Tuning.nozzleOffsetPoints
+        // Short kick back after each spray.
+        let k = Float(max(0, 1 - (now - lastSprayTime) / 0.15))
+        let t = Float(now - startTime)
+        let idle = SIMD2<Float>(sin(t * 1.6), cos(t * 1.1)) * 1.5
+        let nozzle = hand + idle + SIMD2(10, 5) * k
+        // The top of the bottle lags behind fast moves. The wrist also turns a little toward the screen edges.
+        let side = tools.cursor.x / space.viewSizePoints.x - 0.5
+        let sway = max(-0.25, min(0.25, -handVelocity.x * 0.0003))
+        let rotation = Tuning.bottleTilt + sway - side * 0.12 - 0.05 * k
+        let h = Tuning.bottleHeightPoints
+        let size = SIMD2<Float>(h * Float(bottle.width) / Float(bottle.height), h * (1 - 0.03 * k))
+        let fromAnchor = (SIMD2<Float>(0.5, 0.5) - BottleSprite.nozzleAnchor) * size
+        let c = cos(rotation), s = sin(rotation)
+        let center = nozzle + SIMD2(fromAnchor.x * c - fromAnchor.y * s, fromAnchor.x * s + fromAnchor.y * c)
+        return (nozzle, Sprite(center: center, size: size, rotation: rotation, alpha: 1, kind: .texture))
+    }
+
+    private func drawTool(now: Double, encoder: MTLRenderCommandEncoder) {
+        let view = space.viewSizePoints
+        let mistItems = mist.particles.map { p -> SIMD4<Float> in
+            let pos = p.position
+            return SIMD4(pos.x, pos.y, p.size, MistSystem.opacity(p))
+        }
+        sprites.drawMist(mistItems, viewSize: view, encoder: encoder)
         switch tools.tool {
         case .bottle:
-            // Short kick after each spray.
-            let k = Float(max(0, 1 - (now - lastSprayTime) / 0.12))
-            let h = Tuning.bottleHeightPoints
-            let size = SIMD2<Float>(h * Float(bottle.width) / Float(bottle.height), h * (1 - 0.05 * k))
-            let center = cursor + (SIMD2<Float>(0.5, 0.5) - BottleSprite.nozzleAnchor) * size + SIMD2(8 * k, 4 * k)
-            return Sprite(center: center, size: size, rotation: -0.05 * k, alpha: 1, kind: .texture)
+            sprites.draw(bottlePose(now: now).sprite, texture: bottle, viewSize: view, encoder: encoder)
         case .cloth:
-            return Sprite(center: cursor, size: SIMD2(repeating: Tuning.clothSizePoints),
-                          rotation: clothAngle, alpha: 1, kind: .cloth)
+            let motion = SIMD4(clothVelocity.x, clothVelocity.y, Float(now - startTime), clothLift)
+            let size = SIMD2<Float>(repeating: Tuning.clothSizePoints * (1 + 0.05 * clothLift))
+            let rotation = clothAngle - 0.12
+            // In the air the shadow moves away from the cloth.
+            let shadowOffset = SIMD2<Float>(5, 8) + SIMD2(10, 14) * clothLift
+            sprites.draw(Sprite(center: tools.cursor + shadowOffset, size: size * 1.04, rotation: rotation, alpha: 1,
+                                kind: .clothShadow, motion: motion), texture: nil, viewSize: view, encoder: encoder)
+            sprites.draw(Sprite(center: tools.cursor, size: size, rotation: rotation, alpha: 1,
+                                kind: .cloth, motion: motion), texture: nil, viewSize: view, encoder: encoder)
         }
     }
 }

@@ -34,6 +34,17 @@ public final class DropletSystem {
             let r = Float.random(in: big ? Tuning.bigDropRadius : Tuning.smallDropRadius, using: &rng)
             add(Droplet(position: center + SIMD2(cos(angle), sin(angle)) * distance, radius: r, velocity: 0))
         }
+        mergeAndCap()
+    }
+
+    /// Adds droplets that reached the glass, for example from the spray mist.
+    public func land(_ drops: [Droplet]) {
+        guard !drops.isEmpty else { return }
+        for d in drops { add(d) }
+        mergeAndCap()
+    }
+
+    private func mergeAndCap() {
         merge()
         if droplets.count > maxCount {
             droplets.removeFirst(droplets.count - maxCount)

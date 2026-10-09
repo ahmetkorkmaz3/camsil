@@ -19,8 +19,19 @@ public enum Tuning {
     public static let clothRadiusPoints: Float = 70
     public static let sprayRate: Double = 4
     public static let sprayWetAmount: Float = 0.9
-    public static let bottleHeightPoints: Float = 220
-    public static let clothSizePoints: Float = 150
+    public static let bottleHeightPoints: Float = 520
+    /// Nozzle tip relative to the cursor. The spray flies from here to the cursor.
+    public static let nozzleOffsetPoints = SIMD2<Float>(80, 30)
+    /// Bottle tilt at rest, in radians. The nozzle points up and to the left.
+    public static let bottleTilt: Float = 0.36
+    public static let clothSizePoints: Float = 170
+
+    // Spray mist, in view points and seconds.
+    public static let mistFlightTime: ClosedRange<Float> = 0.07...0.2
+    public static let mistHazeTime: ClosedRange<Float> = 0.35...0.8
+    public static let mistHazeCount = 70
+    public static let mistOpacity: Float = 0.13
+    public static let mistHazeOpacity: Float = 0.07
 
     // Droplets, in simulation pixels.
     public static let smallDropCount = 250
