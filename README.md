@@ -45,6 +45,6 @@ GPU tests need an Apple Silicon Mac.
 
         gh release create v1.0.0 build/Camsil-1.0.0.zip build/Camsil-1.0.0.zip.sha256
 
-Without `CODESIGN_IDENTITY`, the app gets an ad-hoc signature. Then macOS asks for Screen Recording again after each update. A self-signed certificate in the keychain keeps the permission: `CODESIGN_IDENTITY="Camsil Self-Signed" scripts/bundle.sh`.
+macOS binds the Screen Recording permission to the signature. Run `scripts/make-signing-cert.sh` once. It puts a "Camsil Self-Signed" certificate in the login keychain, and `bundle.sh` then uses it. Without the certificate, the app gets an ad-hoc signature, and macOS asks for the permission again after each build.
 
 Sound credits are in `CREDITS.md`.

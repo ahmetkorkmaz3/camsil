@@ -1,8 +1,10 @@
 #!/bin/sh
 # Builds build/Camsil.app and build/Camsil-<version>.zip with its .sha256 file, for GitHub Releases.
 # VERSION sets the version. Without it, an exact v* tag gives the version, or the version is 0.0.0-dev.
-# CODESIGN_IDENTITY names a certificate in the keychain (for example a self-signed one).
-# Without it, the app gets an ad-hoc signature. Then macOS asks for Screen Recording again after each update.
+# CODESIGN_IDENTITY names a certificate in the keychain. Without it, the script uses "Camsil Self-Signed"
+# (made by scripts/make-signing-cert.sh) if the keychain has it, or else an ad-hoc signature.
+# macOS binds the Screen Recording permission to the signature. An ad-hoc signature changes with each build,
+# so macOS then asks for the permission again after each build.
 # The app is not notarized, because that needs a paid Apple Developer account.
 set -eu
 cd "$(dirname "$0")/.."
@@ -15,7 +17,14 @@ if [ -z "${VERSION:-}" ]; then
     esac
 fi
 BUILD_NUMBER="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
-IDENTITY="${CODESIGN_IDENTITY:--}"
+DEFAULT_IDENTITY="Camsil Self-Signed"
+if [ -n "${CODESIGN_IDENTITY:-}" ]; then
+    IDENTITY="$CODESIGN_IDENTITY"
+elif security find-certificate -c "$DEFAULT_IDENTITY" >/dev/null 2>&1; then
+    IDENTITY="$DEFAULT_IDENTITY"
+else
+    IDENTITY="-"
+fi
 
 command -v xcodegen >/dev/null 2>&1 || { echo "Hata: XcodeGen yok. Kurun: brew install xcodegen" >&2; exit 1; }
 
@@ -34,7 +43,7 @@ rm -rf "$APP" "$ZIP" "$ZIP.sha256"
 ditto "$DERIVED/Build/Products/Release/Camsil.app" "$APP"
 
 if [ "$IDENTITY" = "-" ]; then
-    echo "Uyarı: Ad-hoc imza. Her güncellemeden sonra macOS Ekran Kaydı iznini yeniden ister." >&2
+    echo "Uyarı: Ad-hoc imza. Her derlemeden sonra macOS Ekran Kaydı iznini yeniden ister. Bkz. scripts/make-signing-cert.sh" >&2
 fi
 # No hardened runtime: it is only for notarization, and its library check can reject
 # an embedded framework that has no Apple team ID.
